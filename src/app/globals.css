@@ -1,26 +1,532 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap');
 @import "tailwindcss";
 
+/* ========================================
+   VIRTUNA - LIQUID GLASS DESIGN SYSTEM
+   Inspired by: iOS 26, Revolut, Nebulix, Apple
+   ======================================== */
+
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  /* Core Backgrounds */
+  --bg-base: #02010A;
+  --bg-deep: #000000;
+  --bg-primary: #0A0A0F;
+  --bg-elevated: #0F0F16;
+  --bg-card: #12121C;
+  --bg-hover: #1A1A26;
+
+  /* Virtuna Cyan */
+  --virtuna: #00E5CC;
+  --virtuna-hover: #00FFE0;
+  --virtuna-pressed: #00BCA8;
+  --virtuna-glow: rgba(0, 229, 204, 0.15);
+  --virtuna-muted: rgba(0, 229, 204, 0.08);
+  --virtuna-glass: rgba(0, 229, 204, 0.12);
+  --virtuna-border: rgba(0, 229, 204, 0.30);
+
+  /* Accent Purple */
+  --accent: #8B5CF6;
+  --accent-hover: #A78BFA;
+  --accent-glow: rgba(139, 92, 246, 0.20);
+
+  /* Text */
+  --text-primary: #FFFFFF;
+  --text-secondary: #A1A1B5;
+  --text-tertiary: #6B6B80;
+  --text-muted: #4A4A5C;
+
+  /* Liquid Glass System */
+  --glass-bg-1: rgba(12, 12, 20, 0.70);
+  --glass-bg-2: rgba(18, 18, 28, 0.75);
+  --glass-bg-3: rgba(24, 24, 38, 0.80);
+  --glass-bg-4: rgba(30, 30, 48, 0.85);
+
+  --glass-border-1: rgba(255, 255, 255, 0.06);
+  --glass-border-2: rgba(255, 255, 255, 0.10);
+  --glass-border-3: rgba(255, 255, 255, 0.14);
+  --glass-border-4: rgba(255, 255, 255, 0.18);
+
+  --glass-blur-1: 12px;
+  --glass-blur-2: 20px;
+  --glass-blur-3: 32px;
+  --glass-blur-4: 48px;
+
+  /* Shadows */
+  --shadow-glass-sm: 0 4px 16px rgba(0, 0, 0, 0.25);
+  --shadow-glass: 0 8px 32px rgba(0, 0, 0, 0.35);
+  --shadow-glass-lg: 0 16px 48px rgba(0, 0, 0, 0.45);
+
+  /* Animation tokens */
+  --duration-fast: 150ms;
+  --duration-normal: 300ms;
+  --duration-slow: 500ms;
+  --ease-glass: cubic-bezier(0.25, 0.1, 0.25, 1);
+  --ease-bounce: cubic-bezier(0.34, 1.56, 0.64, 1);
 }
 
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --color-background: var(--bg-base);
+  --color-foreground: var(--text-primary);
+  --font-sans: 'Inter', system-ui, sans-serif;
+  --font-mono: 'JetBrains Mono', monospace;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+/* Base Styles */
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html {
+  font-size: 16px;
+  -webkit-text-size-adjust: 100%;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+html, body {
+  height: 100%;
+  background-color: var(--bg-base);
+  color: var(--text-primary);
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: 'Inter', system-ui, sans-serif;
+  min-height: 100dvh;
+  overflow-x: hidden;
+}
+
+/* ========================================
+   LIQUID GLASS COMPONENTS
+   ======================================== */
+
+/* Glass Level 1: Subtle (toolbars, nav) */
+.glass-1 {
+  background: var(--glass-bg-1);
+  backdrop-filter: blur(var(--glass-blur-1));
+  -webkit-backdrop-filter: blur(var(--glass-blur-1));
+  border: 1px solid var(--glass-border-1);
+  box-shadow: var(--shadow-glass-sm);
+}
+
+/* Glass Level 2: Medium (cards, panels) */
+.glass-2 {
+  background: var(--glass-bg-2);
+  backdrop-filter: blur(var(--glass-blur-2));
+  -webkit-backdrop-filter: blur(var(--glass-blur-2));
+  border: 1px solid var(--glass-border-2);
+  box-shadow: var(--shadow-glass);
+}
+
+/* Glass Level 3: Heavy (modals, dropdowns) */
+.glass-3 {
+  background: var(--glass-bg-3);
+  backdrop-filter: blur(var(--glass-blur-3));
+  -webkit-backdrop-filter: blur(var(--glass-blur-3));
+  border: 1px solid var(--glass-border-3);
+  box-shadow: var(--shadow-glass-lg);
+}
+
+/* Glass Level 4: Ultra (hero elements) */
+.glass-4 {
+  background: var(--glass-bg-4);
+  backdrop-filter: blur(var(--glass-blur-4));
+  -webkit-backdrop-filter: blur(var(--glass-blur-4));
+  border: 1px solid var(--glass-border-4);
+  box-shadow: var(--shadow-glass-lg);
+}
+
+/* Liquid Glass Shine Effect */
+.glass-shine {
+  position: relative;
+  overflow: hidden;
+}
+
+.glass-shine::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 50%;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.10) 0%, transparent 100%);
+  pointer-events: none;
+  border-radius: inherit;
+}
+
+/* Liquid Edge Highlight */
+.glass-edge {
+  position: relative;
+}
+
+.glass-edge::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  padding: 1px;
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.15) 0%, transparent 50%, rgba(255, 255, 255, 0.05) 100%);
+  -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  pointer-events: none;
+}
+
+/* ========================================
+   INTERACTIVE STATES
+   ======================================== */
+
+/* Glass Card with Hover */
+.glass-card {
+  background: var(--glass-bg-2);
+  backdrop-filter: blur(var(--glass-blur-2));
+  -webkit-backdrop-filter: blur(var(--glass-blur-2));
+  border: 1px solid var(--glass-border-2);
+  border-radius: 1rem;
+  transition: all var(--duration-normal) var(--ease-glass);
+}
+
+.glass-card:hover {
+  background: var(--glass-bg-3);
+  border-color: var(--glass-border-3);
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-glass-lg);
+}
+
+/* Accent Glass Card */
+.glass-card-accent {
+  background: var(--glass-bg-2);
+  backdrop-filter: blur(var(--glass-blur-2));
+  -webkit-backdrop-filter: blur(var(--glass-blur-2));
+  border: 1px solid var(--virtuna-glass);
+  border-radius: 1rem;
+  transition: all var(--duration-normal) var(--ease-glass);
+}
+
+.glass-card-accent:hover {
+  border-color: var(--virtuna-border);
+  box-shadow: var(--shadow-glass), 0 0 20px var(--virtuna-glow);
+}
+
+/* ========================================
+   TYPOGRAPHY
+   ======================================== */
+
+/* Data/Metric Typography - Always Monospace */
+.font-data {
+  font-family: 'JetBrains Mono', monospace;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.02em;
+}
+
+/* Score Display */
+.score-display {
+  font-family: 'JetBrains Mono', monospace;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.02em;
+}
+
+/* ========================================
+   BUTTONS
+   ======================================== */
+
+/* Primary Button - Accent Gradient */
+.btn-primary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1.5rem;
+  font-weight: 600;
+  font-size: 0.875rem;
+  color: white;
+  background: linear-gradient(135deg, var(--accent) 0%, var(--accent-hover) 100%);
+  border: none;
+  border-radius: 0.75rem;
+  cursor: pointer;
+  transition: all var(--duration-normal) var(--ease-glass);
+  box-shadow: 0 4px 12px var(--accent-glow);
+}
+
+.btn-primary:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 6px 20px var(--accent-glow);
+}
+
+.btn-primary:active {
+  transform: scale(0.98);
+}
+
+/* Secondary Button - Glass */
+.btn-secondary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1.5rem;
+  font-weight: 500;
+  font-size: 0.875rem;
+  color: var(--text-primary);
+  background: var(--glass-bg-2);
+  backdrop-filter: blur(var(--glass-blur-1));
+  border: 1px solid var(--glass-border-2);
+  border-radius: 0.75rem;
+  cursor: pointer;
+  transition: all var(--duration-normal) var(--ease-glass);
+}
+
+.btn-secondary:hover {
+  background: var(--glass-bg-3);
+  border-color: var(--glass-border-3);
+}
+
+/* Virtuna Button - Cyan accent */
+.btn-virtuna {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1.5rem;
+  font-weight: 600;
+  font-size: 0.875rem;
+  color: #000;
+  background: linear-gradient(135deg, var(--virtuna) 0%, var(--virtuna-pressed) 100%);
+  border: none;
+  border-radius: 0.75rem;
+  cursor: pointer;
+  transition: all var(--duration-normal) var(--ease-glass);
+  box-shadow: 0 4px 12px var(--virtuna-glow);
+}
+
+.btn-virtuna:hover {
+  background: linear-gradient(135deg, var(--virtuna-hover) 0%, var(--virtuna) 100%);
+  transform: translateY(-1px);
+  box-shadow: 0 6px 20px var(--virtuna-glow);
+}
+
+/* Ghost Button */
+.btn-ghost {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1.5rem;
+  font-weight: 500;
+  font-size: 0.875rem;
+  color: var(--text-secondary);
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: 0.75rem;
+  cursor: pointer;
+  transition: all var(--duration-fast) var(--ease-glass);
+}
+
+.btn-ghost:hover {
+  color: var(--text-primary);
+  background: var(--glass-bg-1);
+}
+
+/* Icon Button */
+.btn-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.5rem;
+  height: 2.5rem;
+  color: var(--text-secondary);
+  background: var(--glass-bg-1);
+  backdrop-filter: blur(var(--glass-blur-1));
+  border: 1px solid var(--glass-border-1);
+  border-radius: 0.75rem;
+  cursor: pointer;
+  transition: all var(--duration-fast) var(--ease-glass);
+}
+
+.btn-icon:hover {
+  color: var(--text-primary);
+  background: var(--glass-bg-2);
+  border-color: var(--glass-border-2);
+}
+
+/* ========================================
+   INPUTS
+   ======================================== */
+
+.input-glass {
+  width: 100%;
+  padding: 0.75rem 1rem;
+  font-size: 1rem;
+  color: var(--text-primary);
+  background: var(--glass-bg-1);
+  backdrop-filter: blur(var(--glass-blur-1));
+  border: 1px solid var(--glass-border-2);
+  border-radius: 0.75rem;
+  outline: none;
+  transition: all var(--duration-normal) var(--ease-glass);
+}
+
+.input-glass::placeholder {
+  color: var(--text-muted);
+}
+
+.input-glass:focus {
+  border-color: var(--virtuna-border);
+  box-shadow: 0 0 0 3px var(--virtuna-muted);
+}
+
+/* ========================================
+   NAVIGATION
+   ======================================== */
+
+/* Bottom Navigation */
+.bottom-nav {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 50;
+  display: flex;
+  align-items: center;
+  justify-content: space-around;
+  padding: 0.75rem 1rem;
+  padding-bottom: calc(0.75rem + env(safe-area-inset-bottom, 0px));
+  background: var(--glass-bg-2);
+  backdrop-filter: blur(var(--glass-blur-3));
+  -webkit-backdrop-filter: blur(var(--glass-blur-3));
+  border-top: 1px solid var(--glass-border-1);
+}
+
+.nav-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 0.5rem 1rem;
+  font-size: 0.625rem;
+  font-weight: 500;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  transition: color var(--duration-fast) var(--ease-glass);
+  text-decoration: none;
+}
+
+.nav-item:hover,
+.nav-item--active {
+  color: var(--virtuna);
+}
+
+.nav-item svg {
+  width: 1.25rem;
+  height: 1.25rem;
+}
+
+/* ========================================
+   UTILITY CLASSES
+   ======================================== */
+
+/* Scrollbar */
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}
+
+/* Safe Areas */
+.pt-safe {
+  padding-top: env(safe-area-inset-top, 0);
+}
+
+.pb-safe {
+  padding-bottom: env(safe-area-inset-bottom, 0);
+}
+
+/* Page Content with Bottom Nav Space */
+.page-content {
+  padding: 1rem;
+  padding-bottom: calc(5rem + env(safe-area-inset-bottom, 0px));
+}
+
+/* Glow Effects */
+.glow-virtuna {
+  box-shadow: 0 0 20px var(--virtuna-glow), 0 0 40px rgba(0, 229, 204, 0.08);
+}
+
+.glow-accent {
+  box-shadow: 0 0 20px var(--accent-glow);
+}
+
+/* Text Colors */
+.text-virtuna {
+  color: var(--virtuna);
+}
+
+.text-accent {
+  color: var(--accent);
+}
+
+/* ========================================
+   ANIMATIONS
+   ======================================== */
+
+@keyframes shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+
+.animate-shimmer {
+  background: linear-gradient(90deg, var(--bg-card) 25%, var(--bg-hover) 50%, var(--bg-card) 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite;
+}
+
+@keyframes pulse-glow {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.7; }
+}
+
+.animate-pulse-glow {
+  animation: pulse-glow 2s ease-in-out infinite;
+}
+
+@keyframes float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-8px); }
+}
+
+.animate-float {
+  animation: float 4s ease-in-out infinite;
+}
+
+/* Reduced Motion */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* ========================================
+   RESPONSIVE
+   ======================================== */
+
+@media (max-width: 768px) {
+  html, body {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+
+  html::-webkit-scrollbar,
+  body::-webkit-scrollbar {
+    display: none;
+  }
 }
