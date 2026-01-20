@@ -1,7 +1,7 @@
 # Virtuna Audit - Task & Status Tracker
 
 **Last Updated:** 2026-01-20
-**Overall Progress:** 10/26 tasks complete
+**Overall Progress:** 14/26 tasks complete
 
 ---
 
@@ -41,12 +41,16 @@ Run the migration in Supabase SQL Editor:
 
 | ID | Task | Status | Effort | Notes |
 |----|------|--------|--------|-------|
-| T-011 | Add has_seen_onboarding to user schema | ⬜ TODO | 2h | Database + API |
-| T-012 | Create OnboardingModal component | ⬜ TODO | 6h | 3-step tour |
-| T-013 | Add confetti on first analysis completion | ⬜ TODO | 2h | Celebration moment |
-| T-014 | Track onboarding analytics events | ⬜ TODO | 3h | shown/completed/skipped |
+| T-011 | Add has_seen_onboarding to user schema | ✅ DONE | 2h | Migration 003 + types updated |
+| T-012 | Create OnboardingModal component | ✅ DONE | 6h | 3-step tour with animations |
+| T-013 | Add confetti on first analysis completion | ✅ DONE | 2h | canvas-confetti + celebration banner |
+| T-014 | Track onboarding analytics events | ✅ DONE | 3h | Analytics utility + tracking calls |
 
-**Phase 3 Progress:** 0/4 complete
+**Phase 3 Progress:** 4/4 complete
+
+### ACTION REQUIRED:
+Run the migration in Supabase SQL Editor:
+`supabase/migrations/003_onboarding.sql`
 
 ---
 
@@ -105,6 +109,30 @@ Run the migration in Supabase SQL Editor:
 
 ### 2026-01-20
 
+**Phase 3 Onboarding Flow - COMPLETED**
+
+- **T-011**: Added `has_seen_onboarding` column to profiles
+  - Created migration `003_onboarding.sql`
+  - Updated TypeScript types in `database.ts`
+  - Existing users with analyses auto-marked as onboarded
+
+- **T-012**: Created OnboardingModal component
+  - 3-step animated tour explaining key features
+  - Progress dots navigation
+  - Skip and complete actions
+
+- **T-013**: Added first analysis celebration
+  - Installed `canvas-confetti` library
+  - Created confetti utility with customized bursts
+  - Celebration banner shown after first analysis
+
+- **T-014**: Added analytics tracking
+  - Created `analytics.ts` utility (ready for PostHog/Mixpanel)
+  - Tracks: onboarding_shown, step_viewed, completed, skipped
+  - Tracks: first_analysis_completed with score
+
+---
+
 **Phase 2 Activation Quick Wins - COMPLETED**
 
 - **T-006**: Added "Try Sample" button to /analyze page
@@ -153,7 +181,7 @@ Run the migration in Supabase SQL Editor:
 ## Quick Stats
 
 - **Total Tasks:** 26
-- **Completed:** 10
+- **Completed:** 14
 - **In Progress:** 0
-- **Remaining:** 16
-- **Estimated Hours:** ~61h remaining
+- **Remaining:** 12
+- **Estimated Hours:** ~48h remaining

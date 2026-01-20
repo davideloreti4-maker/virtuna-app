@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import Link from "next/link";
 import {
   ArrowLeft,
@@ -16,16 +16,23 @@ import {
   AlertCircle,
   ArrowRight,
   Upload,
+  PartyPopper,
 } from "lucide-react";
-import { useAnalyze } from "@/lib/hooks/use-analyses";
+import { useAnalyze, useAnalyses } from "@/lib/hooks/use-analyses";
+import { fireConfetti } from "@/lib/hooks/use-confetti";
+import { trackFirstAnalysisCompleted } from "@/lib/analytics";
 import type { AnalysisWithDetails, AISuggestion } from "@/types/analysis";
 
 export default function AnalyzePage() {
   const [url, setUrl] = useState("");
   const [result, setResult] = useState<AnalysisWithDetails | null>(null);
   const [validationError, setValidationError] = useState("");
+  const [showFirstAnalysisCelebration, setShowFirstAnalysisCelebration] = useState(false);
+  const hasTriggeredConfetti = useRef(false);
 
   const analyzeMutation = useAnalyze();
+  const { data: analysesData } = useAnalyses({ limit: 1 });
+  const totalAnalyses = analysesData?.pagination.total || 0;
 
   const handleAnalyze = async () => {
     if (!url.trim()) {
@@ -43,6 +50,16 @@ export default function AnalyzePage() {
     try {
       const data = await analyzeMutation.mutateAsync(url);
       setResult(data.analysis);
+
+      // Fire confetti for first analysis!
+      if (totalAnalyses === 0 && !hasTriggeredConfetti.current) {
+        hasTriggeredConfetti.current = true;
+        setShowFirstAnalysisCelebration(true);
+        trackFirstAnalysisCompleted(data.analysis.overall_score || 0);
+        setTimeout(() => fireConfetti(), 300);
+        // Auto-hide celebration after 5 seconds
+        setTimeout(() => setShowFirstAnalysisCelebration(false), 5000);
+      }
     } catch {
       // Error is handled by the mutation
     }
@@ -225,6 +242,23 @@ export default function AnalyzePage() {
         </div>
       ) : (
         <div className="max-w-3xl">
+          {/* First Analysis Celebration */}
+          {showFirstAnalysisCelebration && (
+            <div className="glass-panel-strong p-4 mb-6 border border-[var(--accent-primary)]/30 bg-gradient-to-r from-[var(--accent-primary)]/10 to-[var(--accent-secondary)]/10 animate-fade-in">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-[#7C3AED] to-[#FF5757] flex items-center justify-center">
+                  <PartyPopper className="w-5 h-5 text-white" />
+                </div>
+                <div>
+                  <h3 className="text-white font-semibold">Congratulations on your first analysis!</h3>
+                  <p className="text-[var(--text-secondary)] text-sm">
+                    You&apos;re on your way to creating viral content. Keep analyzing to improve!
+                  </p>
+                </div>
+              </div>
+            </div>
+          )}
+
           {/* Score Hero */}
           <div className="glass-panel-strong score-hero mb-6">
             <span className="text-[var(--text-muted)] text-sm uppercase tracking-wider mb-2">

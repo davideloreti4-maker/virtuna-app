@@ -1,6 +1,8 @@
 "use client";
 
+import { useState } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import {
   Radar,
   TrendingUp,
@@ -18,6 +20,7 @@ import { PerformanceBarChart } from "@/components/charts/performance-bar-chart";
 import { ScoreDistributionChart } from "@/components/charts/score-distribution-chart";
 import { MiniSparkline } from "@/components/charts/mini-sparkline";
 import { GlassPanel } from "@/components/ui/glass-panel";
+import { OnboardingModal } from "@/components/onboarding/onboarding-modal";
 import { useAnalyses } from "@/lib/hooks/use-analyses";
 import { useUser } from "@/lib/hooks/use-user";
 import { formatRelativeDate, formatNumber } from "@/lib/utils/format";
@@ -29,8 +32,10 @@ const sparklineData2 = [30, 42, 55, 48, 62, 70, 85];
 const sparklineData3 = [80, 75, 82, 78, 85, 90, 88];
 
 export default function DashboardPage() {
+  const router = useRouter();
   const { data: userData, isLoading: userLoading } = useUser();
   const { data: analysesData, isLoading: analysesLoading } = useAnalyses({ limit: 5 });
+  const [showOnboarding, setShowOnboarding] = useState<boolean | null>(null);
 
   const analyses = analysesData?.analyses || [];
   const totalAnalyses = analysesData?.pagination.total || 0;
@@ -43,37 +48,53 @@ export default function DashboardPage() {
   const isLoading = userLoading || analysesLoading;
   const isNewUser = totalAnalyses < 3;
 
+  // Check if we should show onboarding (only once when data loads)
+  const shouldShowOnboarding = !isLoading && user && user.has_seen_onboarding === false && showOnboarding === null;
+  if (shouldShowOnboarding) {
+    setShowOnboarding(true);
+  }
+
   // Show welcome state for brand new users
   if (!isLoading && totalAnalyses === 0) {
     return (
-      <div className="animate-fade-in">
-        <header className="page-header">
-          <div>
-            <h1 className="page-title">Welcome to Virtuna! 🎉</h1>
-            <p className="text-[var(--text-tertiary)] text-sm mt-1">
-              Let&apos;s predict your first viral hit
-            </p>
-          </div>
-        </header>
-
-        <div className="max-w-2xl mx-auto">
-          {/* Hero CTA */}
-          <GlassPanel variant="strong" className="p-8 text-center mb-6">
-            <div className="w-20 h-20 rounded-2xl bg-gradient-to-br from-[#7C3AED] to-[#FF5757] flex items-center justify-center mx-auto mb-6">
-              <Radar className="w-10 h-10 text-white" />
+      <>
+        {showOnboarding && (
+          <OnboardingModal
+            onComplete={() => {
+              setShowOnboarding(false);
+              router.push('/analyze');
+            }}
+            onSkip={() => setShowOnboarding(false)}
+          />
+        )}
+        <div className="animate-fade-in">
+          <header className="page-header">
+            <div>
+              <h1 className="page-title">Welcome to Virtuna!</h1>
+              <p className="text-[var(--text-tertiary)] text-sm mt-1">
+                Let&apos;s predict your first viral hit
+              </p>
             </div>
-            <h2 className="text-2xl font-bold text-white mb-3">
-              Ready to Go Viral?
-            </h2>
-            <p className="text-[var(--text-secondary)] mb-6 max-w-md mx-auto">
-              Our AI analyzes your TikTok videos and predicts their viral potential.
-              Get actionable insights to boost your content performance.
-            </p>
-            <Link href="/analyze" className="btn btn-primary btn-lg">
-              <Sparkles className="w-5 h-5" />
-              Analyze Your First Video
-            </Link>
-          </GlassPanel>
+          </header>
+
+          <div className="max-w-2xl mx-auto">
+            {/* Hero CTA */}
+            <GlassPanel variant="strong" className="p-8 text-center mb-6">
+              <div className="w-20 h-20 rounded-2xl bg-gradient-to-br from-[#7C3AED] to-[#FF5757] flex items-center justify-center mx-auto mb-6">
+                <Radar className="w-10 h-10 text-white" />
+              </div>
+              <h2 className="text-2xl font-bold text-white mb-3">
+                Ready to Go Viral?
+              </h2>
+              <p className="text-[var(--text-secondary)] mb-6 max-w-md mx-auto">
+                Our AI analyzes your TikTok videos and predicts their viral potential.
+                Get actionable insights to boost your content performance.
+              </p>
+              <Link href="/analyze" className="btn btn-primary btn-lg">
+                <Sparkles className="w-5 h-5" />
+                Analyze Your First Video
+              </Link>
+            </GlassPanel>
 
           {/* What You Get */}
           <GlassPanel className="p-6">
@@ -118,7 +139,8 @@ export default function DashboardPage() {
             </div>
           </GlassPanel>
         </div>
-      </div>
+        </div>
+      </>
     );
   }
 
