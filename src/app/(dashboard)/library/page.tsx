@@ -16,6 +16,8 @@ import {
 } from "lucide-react";
 import { useAnalyses, useDeleteAnalysis } from "@/lib/hooks/use-analyses";
 import { formatRelativeDate } from "@/lib/utils/format";
+import { Skeleton, SkeletonStatCard } from "@/components/ui/skeleton";
+import { PullToRefresh } from "@/components/ui/pull-to-refresh";
 import type { AnalysisWithDetails } from "@/types/analysis";
 
 function extractVideoId(url: string): string {
@@ -27,12 +29,16 @@ export default function LibraryPage() {
   const [filter, setFilter] = useState<"all" | "viral" | "recent">("all");
   const [searchQuery, setSearchQuery] = useState("");
 
-  const { data, isLoading, error } = useAnalyses({
+  const { data, isLoading, error, refetch } = useAnalyses({
     sort: filter === "recent" ? "date" : "score",
     order: "desc",
     minScore: filter === "viral" ? 80 : undefined,
     search: searchQuery || undefined,
   });
+
+  const handleRefresh = async () => {
+    await refetch();
+  };
 
   const analyses = data?.analyses || [];
   const viralCount = analyses.filter((a) => (a.overall_score || 0) >= 80).length;
@@ -41,8 +47,9 @@ export default function LibraryPage() {
     : 0;
 
   return (
-    <div className="animate-fade-in">
-      {/* Header */}
+    <PullToRefresh onRefresh={handleRefresh} disabled={isLoading}>
+      <div className="animate-fade-in">
+        {/* Header */}
       <header className="flex flex-col gap-4 mb-6">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3 sm:gap-4">
@@ -118,11 +125,21 @@ export default function LibraryPage() {
         </FilterButton>
       </div>
 
-      {/* Loading State */}
+      {/* Loading State - Skeleton */}
       {isLoading && (
-        <div className="glass-panel-strong text-center py-16">
-          <Loader2 className="w-8 h-8 mx-auto mb-4 text-virtuna animate-spin" />
-          <p className="text-[var(--text-tertiary)]">Loading analyses...</p>
+        <div className="space-y-3">
+          {[1, 2, 3, 4, 5].map((i) => (
+            <div key={i} className="glass-panel p-3 sm:p-4">
+              <div className="flex items-center gap-3 sm:gap-4">
+                <Skeleton className="w-12 h-12 sm:w-14 sm:h-14 rounded-lg flex-shrink-0" />
+                <div className="flex-1 min-w-0 space-y-2">
+                  <Skeleton className="h-4 w-3/4" />
+                  <Skeleton className="h-3 w-1/2" />
+                </div>
+                <Skeleton className="w-14 h-10 rounded-lg flex-shrink-0" />
+              </div>
+            </div>
+          ))}
         </div>
       )}
 
@@ -167,7 +184,8 @@ export default function LibraryPage() {
           </div>
         )
       )}
-    </div>
+      </div>
+    </PullToRefresh>
   );
 }
 
@@ -185,7 +203,7 @@ function FilterButton({
   return (
     <button
       onClick={onClick}
-      className={`flex items-center gap-2 px-4 py-2.5 rounded-lg text-sm font-medium transition-all ${
+      className={`flex items-center gap-2 px-4 py-3 min-h-[44px] rounded-xl text-sm font-medium transition-all ${
         active
           ? "badge-accent"
           : "glass-panel hover:bg-[var(--glass-bg-hover)]"

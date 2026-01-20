@@ -25,6 +25,8 @@ import type {
   TrendingSoundsResponse,
 } from "@/lib/api/trending-sounds";
 import { formatPlayCount, getTrendBadge } from "@/lib/api/trending-sounds";
+import { Skeleton } from "@/components/ui/skeleton";
+import { PullToRefresh } from "@/components/ui/pull-to-refresh";
 
 async function fetchTrendingSounds(params: {
   category?: string;
@@ -295,7 +297,7 @@ export default function TrendsPage() {
     }, 300);
   };
 
-  const { data, isLoading, error } = useQuery({
+  const { data, isLoading, error, refetch } = useQuery({
     queryKey: ["trending-sounds", selectedCategory, selectedTrend, debouncedSearch],
     queryFn: () =>
       fetchTrendingSounds({
@@ -304,6 +306,10 @@ export default function TrendsPage() {
         search: debouncedSearch || undefined,
       }),
   });
+
+  const handleRefresh = async () => {
+    await refetch();
+  };
 
   const categories = data?.categories || [
     "All",
@@ -316,8 +322,9 @@ export default function TrendsPage() {
   ];
 
   return (
-    <div className="animate-fade-in space-y-6">
-      {/* Header */}
+    <PullToRefresh onRefresh={handleRefresh} disabled={isLoading}>
+      <div className="animate-fade-in space-y-6">
+        {/* Header */}
       <header>
         <h1 className="text-2xl font-semibold text-white flex items-center gap-3">
           <div
@@ -372,7 +379,7 @@ export default function TrendsPage() {
             <button
               key={category}
               onClick={() => setSelectedCategory(category)}
-              className={`px-4 py-2 rounded-full text-sm font-medium whitespace-nowrap transition-colors ${
+              className={`px-4 py-3 min-h-[44px] rounded-full text-sm font-medium whitespace-nowrap transition-colors flex items-center ${
                 selectedCategory === category
                   ? "bg-[var(--accent-primary)] text-white"
                   : "bg-white/10 text-[var(--text-secondary)] hover:bg-white/20"
@@ -407,10 +414,24 @@ export default function TrendsPage() {
       {/* Sound List */}
       <div className="space-y-3">
         {isLoading ? (
-          <div className="glass-panel p-12 flex flex-col items-center justify-center">
-            <Loader2 className="w-8 h-8 text-[var(--accent-primary)] animate-spin mb-4" />
-            <p className="text-[var(--text-secondary)]">Loading trending sounds...</p>
-          </div>
+          <>
+            {[1, 2, 3, 4, 5].map((i) => (
+              <div key={i} className="glass-panel p-4">
+                <div className="flex items-start gap-3">
+                  <Skeleton className="w-12 h-12 rounded-lg flex-shrink-0" />
+                  <div className="flex-1 min-w-0 space-y-2">
+                    <Skeleton className="h-4 w-2/3" />
+                    <Skeleton className="h-3 w-1/3" />
+                    <div className="flex gap-4 pt-1">
+                      <Skeleton className="h-3 w-16" />
+                      <Skeleton className="h-3 w-16" />
+                    </div>
+                  </div>
+                  <Skeleton className="w-20 h-6 rounded-full flex-shrink-0" />
+                </div>
+              </div>
+            ))}
+          </>
         ) : error ? (
           <div className="glass-panel p-12 text-center">
             <p className="text-[var(--color-danger)]">Failed to load trending sounds</p>
@@ -476,6 +497,7 @@ export default function TrendsPage() {
           </div>
         </div>
       </div>
-    </div>
+      </div>
+    </PullToRefresh>
   );
 }
