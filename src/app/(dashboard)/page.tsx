@@ -515,7 +515,7 @@ function RecentAnalysisRow({ analysis }: { analysis: AnalysisWithDetails }) {
       href={`/library/${analysis.id}`}
       className="flex md:grid md:grid-cols-12 gap-3 md:gap-4 py-3 items-center hover:bg-[var(--glass-bg)] rounded-lg px-2 -mx-2 transition-all group"
     >
-      {/* Mobile: simplified layout */}
+      {/* Thumbnail */}
       <div className="flex-shrink-0">
         {analysis.metadata?.thumbnailUrl ? (
           <img
@@ -530,24 +530,38 @@ function RecentAnalysisRow({ analysis }: { analysis: AnalysisWithDetails }) {
         )}
       </div>
 
-      {/* Desktop: full grid layout */}
-      <div className="flex-1 min-w-0 md:col-span-4 md:flex md:items-center md:gap-3">
+      {/* Video Info */}
+      <div className="flex-1 min-w-0 md:col-span-4">
         <span className="text-white text-sm font-medium truncate block">
           {analysis.metadata?.author ? `@${analysis.metadata.author}` : `Video #${videoId}`}
         </span>
-        <span className="text-[var(--text-tertiary)] text-xs md:hidden">{formatRelativeDate(analysis.created_at)}</span>
+        <div className="flex items-center gap-2 mt-0.5">
+          <span className="text-[var(--text-tertiary)] text-xs">{formatRelativeDate(analysis.created_at)}</span>
+          {/* Mobile: inline breakdown */}
+          <div className="flex md:hidden items-center gap-1 text-[10px] font-mono">
+            <span className="text-[var(--text-muted)]">H</span>
+            <span className="text-white/70">{analysis.hook_score || 0}</span>
+            <span className="text-[var(--text-muted)] ml-1">T</span>
+            <span className="text-white/70">{analysis.trend_score || 0}</span>
+            <span className="text-[var(--text-muted)] ml-1">A</span>
+            <span className="text-white/70">{analysis.audio_score || 0}</span>
+          </div>
+        </div>
       </div>
 
+      {/* Desktop: Date column */}
       <div className="hidden md:block md:col-span-2">
         <span className="text-[var(--text-tertiary)] text-sm">{formatRelativeDate(analysis.created_at)}</span>
       </div>
 
+      {/* Desktop: Breakdown column */}
       <div className="hidden md:flex md:col-span-3 gap-1.5">
         <MiniMetric label="H" value={analysis.hook_score || 0} />
         <MiniMetric label="T" value={analysis.trend_score || 0} />
         <MiniMetric label="A" value={analysis.audio_score || 0} />
       </div>
 
+      {/* Score */}
       <div className="flex-shrink-0 md:col-span-3 flex items-center justify-end gap-2">
         <span
           className="font-mono font-bold text-base md:text-lg px-2.5 md:px-3 py-1 rounded-lg"

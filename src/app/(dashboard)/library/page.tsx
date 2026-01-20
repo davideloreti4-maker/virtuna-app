@@ -264,9 +264,20 @@ function AnalysisCard({ analysis }: { analysis: AnalysisWithDetails }) {
               ? `@${analysis.metadata.author}`
               : `Video #${extractVideoId(analysis.video_url)}`}
           </p>
-          <p className="text-[var(--text-tertiary)] text-xs">
-            {formatRelativeDate(analysis.created_at)}
-          </p>
+          <div className="flex items-center gap-2 mt-0.5">
+            <span className="text-[var(--text-tertiary)] text-xs">
+              {formatRelativeDate(analysis.created_at)}
+            </span>
+            {/* Mobile breakdown */}
+            <div className="flex sm:hidden items-center gap-1 text-[10px] font-mono">
+              <span className="text-[var(--text-muted)]">H</span>
+              <span className="text-white/70">{analysis.hook_score || 0}</span>
+              <span className="text-[var(--text-muted)] ml-1">T</span>
+              <span className="text-white/70">{analysis.trend_score || 0}</span>
+              <span className="text-[var(--text-muted)] ml-1">A</span>
+              <span className="text-white/70">{analysis.audio_score || 0}</span>
+            </div>
+          </div>
         </div>
 
         {/* Score Badge - Always visible */}

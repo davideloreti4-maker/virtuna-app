@@ -1,7 +1,7 @@
 # Virtuna Audit - Task & Status Tracker
 
 **Last Updated:** 2026-01-20
-**Overall Progress:** 18/26 tasks complete
+**Overall Progress:** 23/26 tasks complete
 
 ---
 
@@ -71,13 +71,17 @@ Run the migration in Supabase SQL Editor:
 
 | ID | Task | Status | Effort | Notes |
 |----|------|--------|--------|-------|
-| T-019 | Add Quick Analyze output preview | ⬜ TODO | 4h | Show what user gets |
-| T-020 | Add upload progress bar | ⬜ TODO | 4h | UX for large files |
-| T-021 | Add audio preview to trends | ⬜ TODO | 8h | Hear sounds before using |
-| T-022 | Make calendar days clickable | ⬜ TODO | 3h | Standard UX pattern |
-| T-023 | Add "My Scripts" history | ⬜ TODO | 6h | Save generated scripts |
+| T-019 | Add Quick Analyze output preview | ✅ DONE | 4h | "What You'll Get" section shows 6 output categories |
+| T-020 | Add upload progress bar | ✅ DONE | 4h | XMLHttpRequest progress tracking with visual bar |
+| T-021 | Add audio preview to trends | ✅ DONE | 8h | Play/pause toggle on sound cards |
+| T-022 | Make calendar days clickable | ✅ DONE | 3h | Full cell clickable with hover hint |
+| T-023 | Add "My Scripts" history | ✅ DONE | 6h | Save/view/delete scripts with tabs UI |
 
-**Phase 5 Progress:** 0/5 complete
+**Phase 5 Progress:** 5/5 complete
+
+### ACTION REQUIRED:
+Run the migration in Supabase SQL Editor:
+`supabase/migrations/004_saved_scripts.sql`
 
 ---
 
@@ -108,6 +112,37 @@ Run the migration in Supabase SQL Editor:
 ## Execution Log
 
 ### 2026-01-20
+
+**Phase 5 Secondary Features - COMPLETED**
+
+- **T-019**: Added Quick Analyze output preview
+  - "What You'll Get" section showing 6 categories
+  - Hook Analysis, Script Tips, Hashtag Strategy, etc.
+  - Visual preview before user generates
+
+- **T-020**: Added upload progress bar
+  - XMLHttpRequest for progress tracking
+  - Visual progress bar with percentage
+  - "Processing with AI..." state at 100%
+
+- **T-021**: Added audio preview to trends
+  - Play/pause toggle on sound cards
+  - Single audio playback management
+  - Hover overlay with play button
+
+- **T-022**: Made calendar days clickable
+  - Full cell clickable behavior
+  - "+Add" hint on hover
+  - Group hover styling
+
+- **T-023**: Added My Scripts history
+  - Created `saved_scripts` table (migration 004)
+  - API routes for CRUD operations
+  - Tabs UI: "Create New" / "My Scripts"
+  - Save, view, and delete scripts
+  - Script cards with metadata
+
+---
 
 **Phase 4 Analysis Experience - COMPLETED**
 
@@ -203,7 +238,7 @@ Run the migration in Supabase SQL Editor:
 ## Quick Stats
 
 - **Total Tasks:** 26
-- **Completed:** 18
+- **Completed:** 23
 - **In Progress:** 0
-- **Remaining:** 8
-- **Estimated Hours:** ~33h remaining
+- **Remaining:** 3
+- **Estimated Hours:** ~12h remaining

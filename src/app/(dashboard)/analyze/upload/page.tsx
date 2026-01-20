@@ -29,21 +29,47 @@ type UploadedAnalysisWithFeedback = Omit<UploadedAnalysis, 'ai_feedback' | 'sugg
   suggestions: { title: string; description: string; priority: string }[] | null;
 };
 
-async function uploadVideo(file: File) {
-  const formData = new FormData();
-  formData.append("file", file);
+function uploadVideoWithProgress(
+  file: File,
+  onProgress: (progress: number) => void
+): Promise<{ analysis: UploadedAnalysisWithFeedback }> {
+  return new Promise((resolve, reject) => {
+    const xhr = new XMLHttpRequest();
+    const formData = new FormData();
+    formData.append("file", file);
 
-  const res = await fetch("/api/video-upload", {
-    method: "POST",
-    body: formData,
+    xhr.upload.addEventListener("progress", (e) => {
+      if (e.lengthComputable) {
+        const progress = Math.round((e.loaded / e.total) * 100);
+        onProgress(progress);
+      }
+    });
+
+    xhr.addEventListener("load", () => {
+      if (xhr.status >= 200 && xhr.status < 300) {
+        try {
+          const data = JSON.parse(xhr.responseText);
+          resolve(data);
+        } catch {
+          reject(new Error("Invalid response"));
+        }
+      } else {
+        try {
+          const data = JSON.parse(xhr.responseText);
+          reject(new Error(data.error || "Upload failed"));
+        } catch {
+          reject(new Error("Upload failed"));
+        }
+      }
+    });
+
+    xhr.addEventListener("error", () => {
+      reject(new Error("Network error during upload"));
+    });
+
+    xhr.open("POST", "/api/video-upload");
+    xhr.send(formData);
   });
-
-  if (!res.ok) {
-    const data = await res.json();
-    throw new Error(data.error || "Upload failed");
-  }
-
-  return res.json();
 }
 
 async function fetchUploadedAnalyses(): Promise<{ analyses: UploadedAnalysisWithFeedback[] }> {
@@ -62,6 +88,9 @@ export default function VideoUploadPage() {
   const [dragActive, setDragActive] = useState(false);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [selectedAnalysis, setSelectedAnalysis] = useState<UploadedAnalysisWithFeedback | null>(null);
+  const [uploadProgress, setUploadProgress] = useState(0);
+  const [isUploading, setIsUploading] = useState(false);
+  const [uploadError, setUploadError] = useState<string | null>(null);
 
   const queryClient = useQueryClient();
 
@@ -71,13 +100,26 @@ export default function VideoUploadPage() {
     staleTime: 30 * 1000,
   });
 
-  const uploadMutation = useMutation({
-    mutationFn: uploadVideo,
-    onSuccess: () => {
+  const handleUploadWithProgress = async () => {
+    if (!selectedFile) return;
+
+    setIsUploading(true);
+    setUploadProgress(0);
+    setUploadError(null);
+
+    try {
+      await uploadVideoWithProgress(selectedFile, (progress) => {
+        setUploadProgress(progress);
+      });
       queryClient.invalidateQueries({ queryKey: ["uploaded-analyses"] });
       setSelectedFile(null);
-    },
-  });
+      setUploadProgress(0);
+    } catch (err) {
+      setUploadError(err instanceof Error ? err.message : "Upload failed");
+    } finally {
+      setIsUploading(false);
+    }
+  };
 
   const deleteMutation = useMutation({
     mutationFn: deleteAnalysis,
@@ -118,7 +160,7 @@ export default function VideoUploadPage() {
 
   const handleUpload = () => {
     if (selectedFile) {
-      uploadMutation.mutate(selectedFile);
+      handleUploadWithProgress();
     }
   };
 
@@ -265,27 +307,27 @@ export default function VideoUploadPage() {
                         e.stopPropagation();
                         handleUpload();
                       }}
-                      disabled={uploadMutation.isPending}
+                      disabled={isUploading}
                       style={{
                         padding: "10px 24px",
                         borderRadius: "10px",
-                        background: uploadMutation.isPending
+                        background: isUploading
                           ? "rgba(124, 58, 237, 0.5)"
                           : "linear-gradient(135deg, #7C3AED 0%, #9333EA 100%)",
                         border: "none",
                         color: "#fff",
                         fontWeight: 500,
                         fontSize: "14px",
-                        cursor: uploadMutation.isPending ? "not-allowed" : "pointer",
+                        cursor: isUploading ? "not-allowed" : "pointer",
                         display: "flex",
                         alignItems: "center",
                         gap: "8px",
                       }}
                     >
-                      {uploadMutation.isPending ? (
+                      {isUploading ? (
                         <>
                           <Loader2 className="w-4 h-4 animate-spin" />
-                          Analyzing...
+                          {uploadProgress < 100 ? `Uploading ${uploadProgress}%` : "Analyzing..."}
                         </>
                       ) : (
                         <>
@@ -295,6 +337,43 @@ export default function VideoUploadPage() {
                       )}
                     </button>
                   </div>
+
+                  {/* Upload Progress Bar */}
+                  {isUploading && (
+                    <div style={{ marginTop: "16px" }}>
+                      <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "8px" }}>
+                        <span style={{ color: "rgba(255,255,255,0.6)", fontSize: "12px" }}>
+                          {uploadProgress < 100 ? "Uploading..." : "Processing with AI..."}
+                        </span>
+                        <span style={{ color: "#7C3AED", fontSize: "12px", fontWeight: 500 }}>
+                          {uploadProgress}%
+                        </span>
+                      </div>
+                      <div
+                        style={{
+                          height: "6px",
+                          borderRadius: "3px",
+                          background: "rgba(255,255,255,0.1)",
+                          overflow: "hidden",
+                        }}
+                      >
+                        <div
+                          style={{
+                            height: "100%",
+                            width: `${uploadProgress}%`,
+                            borderRadius: "3px",
+                            background: "linear-gradient(90deg, #7C3AED 0%, #9333EA 100%)",
+                            transition: "width 0.3s ease",
+                          }}
+                        />
+                      </div>
+                      {uploadProgress === 100 && (
+                        <p style={{ color: "rgba(255,255,255,0.5)", fontSize: "11px", marginTop: "8px", textAlign: "center" }}>
+                          Gemini Vision is analyzing your video...
+                        </p>
+                      )}
+                    </div>
+                  )}
                 </div>
               ) : (
                 <div>
@@ -312,13 +391,13 @@ export default function VideoUploadPage() {
               )}
             </div>
 
-            {uploadMutation.error && (
+            {uploadError && (
               <div
                 className="flex items-center gap-2 mt-4 p-3 rounded-lg"
                 style={{ background: "rgba(239, 68, 68, 0.1)", border: "1px solid rgba(239, 68, 68, 0.3)" }}
               >
                 <AlertCircle className="w-4 h-4" style={{ color: "#EF4444" }} />
-                <span style={{ color: "#EF4444", fontSize: "13px" }}>{uploadMutation.error.message}</span>
+                <span style={{ color: "#EF4444", fontSize: "13px" }}>{uploadError}</span>
               </div>
             )}
 

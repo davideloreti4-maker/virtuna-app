@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useRef } from "react";
 import Link from "next/link";
 import {
   ArrowLeft,
@@ -19,20 +19,31 @@ import {
   PartyPopper,
 } from "lucide-react";
 import { useAnalyze, useAnalyses } from "@/lib/hooks/use-analyses";
+import { useUser } from "@/lib/hooks/use-user";
 import { fireConfetti } from "@/lib/hooks/use-confetti";
 import { trackFirstAnalysisCompleted } from "@/lib/analytics";
+import { UpgradeModal } from "@/components/upgrade/upgrade-modal";
+import { toastError } from "@/components/ui/use-toast";
 import type { AnalysisWithDetails, AISuggestion } from "@/types/analysis";
+import type { PlanType } from "@/lib/stripe";
 
 export default function AnalyzePage() {
   const [url, setUrl] = useState("");
   const [result, setResult] = useState<AnalysisWithDetails | null>(null);
   const [validationError, setValidationError] = useState("");
   const [showFirstAnalysisCelebration, setShowFirstAnalysisCelebration] = useState(false);
+  const [showUpgradeModal, setShowUpgradeModal] = useState(false);
   const hasTriggeredConfetti = useRef(false);
 
   const analyzeMutation = useAnalyze();
   const { data: analysesData } = useAnalyses({ limit: 1 });
+  const { data: userData } = useUser();
   const totalAnalyses = analysesData?.pagination.total || 0;
+
+  const profile = userData?.user;
+  const currentPlan = (profile?.plan || "free") as PlanType;
+  const usedAnalyses = profile?.analyses_count || 0;
+  const limitAnalyses = profile?.analyses_limit || 5;
 
   const handleAnalyze = async () => {
     if (!url.trim()) {
@@ -60,8 +71,31 @@ export default function AnalyzePage() {
         // Auto-hide celebration after 5 seconds
         setTimeout(() => setShowFirstAnalysisCelebration(false), 5000);
       }
+    } catch (error) {
+      // Check if it's a limit error
+      if (error instanceof Error && error.message.includes("limit")) {
+        setShowUpgradeModal(true);
+      }
+    }
+  };
+
+  const handleUpgrade = async (plan: PlanType, billing: "monthly" | "yearly") => {
+    try {
+      const response = await fetch("/api/checkout", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ plan, billing }),
+      });
+
+      const data = await response.json();
+
+      if (data.url) {
+        window.location.href = data.url;
+      } else {
+        toastError("Checkout failed", data.error || "Could not start checkout.");
+      }
     } catch {
-      // Error is handled by the mutation
+      toastError("Checkout failed", "Could not connect to payment provider.");
     }
   };
 
@@ -92,6 +126,16 @@ export default function AnalyzePage() {
 
   return (
     <div className="animate-fade-in">
+      {/* Upgrade Modal */}
+      <UpgradeModal
+        isOpen={showUpgradeModal}
+        onClose={() => setShowUpgradeModal(false)}
+        currentPlan={currentPlan}
+        usedAnalyses={usedAnalyses}
+        limitAnalyses={limitAnalyses}
+        onUpgrade={handleUpgrade}
+      />
+
       {/* Header */}
       <header className="page-header">
         <div className="flex items-center gap-4">

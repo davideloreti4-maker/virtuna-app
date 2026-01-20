@@ -272,6 +272,74 @@ export type Database = {
           }
         ]
       }
+      saved_scripts: {
+        Row: {
+          id: string
+          user_id: string
+          title: string
+          niche: string
+          topic: string
+          style: 'educational' | 'entertaining' | 'promotional' | 'storytelling' | 'tutorial'
+          duration: 'short' | 'medium' | 'long'
+          tone: 'casual' | 'professional' | 'humorous' | 'inspirational'
+          hook: string
+          body: Json
+          call_to_action: string
+          estimated_duration: number
+          suggested_hashtags: Json
+          suggested_sounds: Json
+          tips_for_delivery: Json
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          user_id: string
+          title: string
+          niche: string
+          topic: string
+          style: 'educational' | 'entertaining' | 'promotional' | 'storytelling' | 'tutorial'
+          duration: 'short' | 'medium' | 'long'
+          tone: 'casual' | 'professional' | 'humorous' | 'inspirational'
+          hook: string
+          body: Json
+          call_to_action: string
+          estimated_duration: number
+          suggested_hashtags?: Json
+          suggested_sounds?: Json
+          tips_for_delivery?: Json
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          user_id?: string
+          title?: string
+          niche?: string
+          topic?: string
+          style?: 'educational' | 'entertaining' | 'promotional' | 'storytelling' | 'tutorial'
+          duration?: 'short' | 'medium' | 'long'
+          tone?: 'casual' | 'professional' | 'humorous' | 'inspirational'
+          hook?: string
+          body?: Json
+          call_to_action?: string
+          estimated_duration?: number
+          suggested_hashtags?: Json
+          suggested_sounds?: Json
+          tips_for_delivery?: Json
+          created_at?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: 'saved_scripts_user_id_fkey'
+            columns: ['user_id']
+            isOneToOne: false
+            referencedRelation: 'profiles'
+            referencedColumns: ['id']
+          }
+        ]
+      }
     }
     Views: {
       [_ in never]: never
@@ -314,3 +382,7 @@ export type SavedHookUpdate = UpdateTables<'saved_hooks'>
 export type UploadedAnalysis = Tables<'uploaded_analyses'>
 export type UploadedAnalysisInsert = InsertTables<'uploaded_analyses'>
 export type UploadedAnalysisUpdate = UpdateTables<'uploaded_analyses'>
+
+export type SavedScript = Tables<'saved_scripts'>
+export type SavedScriptInsert = InsertTables<'saved_scripts'>
+export type SavedScriptUpdate = UpdateTables<'saved_scripts'>

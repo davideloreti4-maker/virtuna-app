@@ -442,10 +442,11 @@ export default function CalendarPage() {
             return (
               <div
                 key={dateStr}
-                className={`min-h-[100px] p-2 rounded-lg border transition-colors ${
+                onClick={() => handleAddContent(dateStr)}
+                className={`group min-h-[100px] p-2 rounded-lg border transition-colors cursor-pointer ${
                   isToday
-                    ? "border-[var(--accent-primary)] bg-[var(--accent-primary)]/10"
-                    : "border-white/10 hover:border-white/20"
+                    ? "border-[var(--accent-primary)] bg-[var(--accent-primary)]/10 hover:bg-[var(--accent-primary)]/20"
+                    : "border-white/10 hover:border-white/20 hover:bg-white/5"
                 } ${isPast ? "opacity-60" : ""}`}
               >
                 <div className="flex items-center justify-between mb-2">
@@ -458,16 +459,16 @@ export default function CalendarPage() {
                   >
                     {date.getDate()}
                   </span>
-                  <button
-                    onClick={() => handleAddContent(dateStr)}
-                    className="opacity-0 group-hover:opacity-100 hover:opacity-100 transition-opacity text-[var(--text-muted)] hover:text-white"
+                  <div
+                    className="opacity-0 group-hover:opacity-100 transition-opacity text-[var(--text-muted)] flex items-center gap-1"
                   >
-                    <Plus className="w-4 h-4" />
-                  </button>
+                    <Plus className="w-3 h-3" />
+                    <span className="text-[10px]">Add</span>
+                  </div>
                 </div>
 
                 {/* Events */}
-                <div className="space-y-1">
+                <div className="space-y-1" onClick={(e) => e.stopPropagation()}>
                   {events.slice(0, 3).map((event) => (
                     <EventCard
                       key={event.id}

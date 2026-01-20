@@ -2,14 +2,13 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   ArrowLeft,
   FileText,
   Sparkles,
   Clock,
   Target,
-  Mic,
   Hash,
   Music,
   Lightbulb,
@@ -18,12 +17,17 @@ import {
   Loader2,
   RefreshCw,
   ChevronDown,
+  History,
+  Save,
+  Trash2,
+  BookOpen,
 } from "lucide-react";
 import type {
   ScriptGenerationInput,
   GeneratedScript,
   ScriptGenerationResult,
 } from "@/lib/api/script-generation";
+import type { SavedScript } from "@/types/database";
 
 async function generateScript(
   input: ScriptGenerationInput
@@ -40,6 +44,53 @@ async function generateScript(
   }
 
   return res.json();
+}
+
+async function fetchSavedScripts(): Promise<{ scripts: SavedScript[] }> {
+  const res = await fetch("/api/scripts/saved");
+  if (!res.ok) {
+    throw new Error("Failed to fetch saved scripts");
+  }
+  return res.json();
+}
+
+async function saveScript(script: {
+  title: string;
+  niche: string;
+  topic: string;
+  style: string;
+  duration: string;
+  tone: string;
+  hook: string;
+  body: string[];
+  callToAction: string;
+  estimatedDuration: number;
+  suggestedHashtags: string[];
+  suggestedSounds: string[];
+  tipsForDelivery: string[];
+}): Promise<{ script: SavedScript }> {
+  const res = await fetch("/api/scripts/saved", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(script),
+  });
+
+  if (!res.ok) {
+    const data = await res.json();
+    throw new Error(data.error || "Failed to save script");
+  }
+
+  return res.json();
+}
+
+async function deleteScript(id: string): Promise<void> {
+  const res = await fetch(`/api/scripts/saved?id=${id}`, {
+    method: "DELETE",
+  });
+
+  if (!res.ok) {
+    throw new Error("Failed to delete script");
+  }
 }
 
 const STYLE_OPTIONS = [
@@ -76,7 +127,14 @@ const NICHE_SUGGESTIONS = [
   "Lifestyle",
 ];
 
-function ScriptDisplay({ script }: { script: GeneratedScript }) {
+interface ScriptDisplayProps {
+  script: GeneratedScript;
+  onSave?: () => void;
+  isSaving?: boolean;
+  isSaved?: boolean;
+}
+
+function ScriptDisplay({ script, onSave, isSaving, isSaved }: ScriptDisplayProps) {
   const [copiedSection, setCopiedSection] = useState<string | null>(null);
 
   const copyToClipboard = (text: string, section: string) => {
@@ -226,23 +284,50 @@ function ScriptDisplay({ script }: { script: GeneratedScript }) {
         </div>
       )}
 
-      {/* Copy Full Script */}
-      <button
-        onClick={copyFullScript}
-        className="btn btn-primary w-full"
-      >
-        {copiedSection === "full" ? (
-          <>
-            <Check className="w-5 h-5" />
-            Copied to Clipboard!
-          </>
-        ) : (
-          <>
-            <Copy className="w-5 h-5" />
-            Copy Full Script
-          </>
+      {/* Action Buttons */}
+      <div className="flex gap-3">
+        <button
+          onClick={copyFullScript}
+          className="btn btn-primary flex-1"
+        >
+          {copiedSection === "full" ? (
+            <>
+              <Check className="w-5 h-5" />
+              Copied!
+            </>
+          ) : (
+            <>
+              <Copy className="w-5 h-5" />
+              Copy Script
+            </>
+          )}
+        </button>
+        {onSave && !isSaved && (
+          <button
+            onClick={onSave}
+            disabled={isSaving}
+            className="btn flex-1"
+          >
+            {isSaving ? (
+              <>
+                <Loader2 className="w-5 h-5 animate-spin" />
+                Saving...
+              </>
+            ) : (
+              <>
+                <Save className="w-5 h-5" />
+                Save Script
+              </>
+            )}
+          </button>
         )}
-      </button>
+        {isSaved && (
+          <div className="btn flex-1 bg-[var(--color-success)]/20 text-[var(--color-success)] cursor-default">
+            <Check className="w-5 h-5" />
+            Saved!
+          </div>
+        )}
+      </div>
 
       {/* Duration */}
       <div className="text-center text-sm text-[var(--text-muted)]">
@@ -253,7 +338,69 @@ function ScriptDisplay({ script }: { script: GeneratedScript }) {
   );
 }
 
+// Saved Script Card for history view
+function SavedScriptCard({
+  script,
+  onView,
+  onDelete,
+  isDeleting,
+}: {
+  script: SavedScript;
+  onView: () => void;
+  onDelete: () => void;
+  isDeleting: boolean;
+}) {
+  const formattedDate = new Date(script.created_at).toLocaleDateString("en-US", {
+    month: "short",
+    day: "numeric",
+    year: "numeric",
+  });
+
+  return (
+    <div className="glass-panel p-4 hover:bg-white/5 transition-colors">
+      <div className="flex items-start justify-between gap-3">
+        <div className="flex-1 min-w-0">
+          <h3 className="text-white font-medium truncate">{script.title}</h3>
+          <p className="text-sm text-[var(--text-muted)] mt-1">
+            {script.niche} • {script.topic}
+          </p>
+          <div className="flex items-center gap-2 mt-2 text-xs text-[var(--text-tertiary)]">
+            <span className="px-2 py-0.5 rounded-full bg-white/10">{script.style}</span>
+            <span className="px-2 py-0.5 rounded-full bg-white/10">{script.duration}</span>
+            <span>{formattedDate}</span>
+          </div>
+        </div>
+        <div className="flex items-center gap-2">
+          <button
+            onClick={onView}
+            className="btn-icon hover:bg-[var(--accent-primary)]/20 hover:text-[var(--accent-primary)]"
+            title="View script"
+          >
+            <BookOpen className="w-4 h-4" />
+          </button>
+          <button
+            onClick={onDelete}
+            disabled={isDeleting}
+            className="btn-icon hover:bg-[var(--color-danger)]/20 hover:text-[var(--color-danger)]"
+            title="Delete script"
+          >
+            {isDeleting ? (
+              <Loader2 className="w-4 h-4 animate-spin" />
+            ) : (
+              <Trash2 className="w-4 h-4" />
+            )}
+          </button>
+        </div>
+      </div>
+      <p className="text-sm text-[var(--text-secondary)] mt-3 line-clamp-2">
+        &ldquo;{script.hook}&rdquo;
+      </p>
+    </div>
+  );
+}
+
 export default function ScriptsPage() {
+  const [activeTab, setActiveTab] = useState<"create" | "history">("create");
   const [niche, setNiche] = useState("");
   const [topic, setTopic] = useState("");
   const [style, setStyle] = useState<ScriptGenerationInput["style"]>("educational");
@@ -262,11 +409,47 @@ export default function ScriptsPage() {
   const [keywords, setKeywords] = useState("");
   const [showAdvanced, setShowAdvanced] = useState(false);
   const [result, setResult] = useState<GeneratedScript | null>(null);
+  const [isSaved, setIsSaved] = useState(false);
+  const [viewingScript, setViewingScript] = useState<SavedScript | null>(null);
+  const [deletingId, setDeletingId] = useState<string | null>(null);
+
+  const queryClient = useQueryClient();
+
+  // Fetch saved scripts
+  const { data: savedScriptsData, isLoading: isLoadingScripts } = useQuery({
+    queryKey: ["savedScripts"],
+    queryFn: fetchSavedScripts,
+  });
+
+  const savedScripts = savedScriptsData?.scripts || [];
 
   const mutation = useMutation({
     mutationFn: generateScript,
     onSuccess: (data) => {
       setResult(data.script);
+      setIsSaved(false);
+    },
+  });
+
+  const saveMutation = useMutation({
+    mutationFn: saveScript,
+    onSuccess: () => {
+      setIsSaved(true);
+      queryClient.invalidateQueries({ queryKey: ["savedScripts"] });
+    },
+  });
+
+  const deleteMutation = useMutation({
+    mutationFn: deleteScript,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["savedScripts"] });
+      setDeletingId(null);
+      if (viewingScript) {
+        setViewingScript(null);
+      }
+    },
+    onError: () => {
+      setDeletingId(null);
     },
   });
 
@@ -283,10 +466,56 @@ export default function ScriptsPage() {
     });
   };
 
+  const handleSave = () => {
+    if (!result) return;
+    saveMutation.mutate({
+      title: `${topic} - ${style}`,
+      niche,
+      topic,
+      style,
+      duration,
+      tone,
+      hook: result.hook,
+      body: result.body,
+      callToAction: result.callToAction,
+      estimatedDuration: result.estimatedDuration,
+      suggestedHashtags: result.suggestedHashtags,
+      suggestedSounds: result.suggestedSounds,
+      tipsForDelivery: result.tipsForDelivery,
+    });
+  };
+
+  const handleDelete = (id: string) => {
+    setDeletingId(id);
+    deleteMutation.mutate(id);
+  };
+
   const handleReset = () => {
     setResult(null);
+    setIsSaved(false);
     mutation.reset();
   };
+
+  const handleViewSavedScript = (script: SavedScript) => {
+    setViewingScript(script);
+  };
+
+  const handleCloseViewingScript = () => {
+    setViewingScript(null);
+  };
+
+  // Convert SavedScript to GeneratedScript format for display
+  const savedScriptToGenerated = (saved: SavedScript): GeneratedScript => ({
+    id: saved.id,
+    hook: saved.hook,
+    body: saved.body as string[],
+    callToAction: saved.call_to_action,
+    estimatedDuration: saved.estimated_duration,
+    suggestedHashtags: saved.suggested_hashtags as string[],
+    suggestedSounds: saved.suggested_sounds as string[],
+    tipsForDelivery: saved.tips_for_delivery as string[],
+    createdAt: saved.created_at,
+  });
 
   const isValid = niche.trim() && topic.trim();
 
@@ -317,8 +546,105 @@ export default function ScriptsPage() {
         </div>
       </header>
 
-      <div className="max-w-2xl">
-        {!result ? (
+      {/* Tabs */}
+      <div className="flex gap-2 mb-6">
+        <button
+          onClick={() => {
+            setActiveTab("create");
+            setViewingScript(null);
+          }}
+          className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors flex items-center gap-2 ${
+            activeTab === "create"
+              ? "bg-[var(--accent-primary)] text-white"
+              : "bg-white/10 text-[var(--text-secondary)] hover:bg-white/20"
+          }`}
+        >
+          <Sparkles className="w-4 h-4" />
+          Create New
+        </button>
+        <button
+          onClick={() => {
+            setActiveTab("history");
+            setResult(null);
+          }}
+          className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors flex items-center gap-2 ${
+            activeTab === "history"
+              ? "bg-[var(--accent-primary)] text-white"
+              : "bg-white/10 text-[var(--text-secondary)] hover:bg-white/20"
+          }`}
+        >
+          <History className="w-4 h-4" />
+          My Scripts
+          {savedScripts.length > 0 && (
+            <span className="px-1.5 py-0.5 rounded-full bg-white/20 text-xs">
+              {savedScripts.length}
+            </span>
+          )}
+        </button>
+      </div>
+
+      {/* History Tab - Viewing a script */}
+      {activeTab === "history" && viewingScript && (
+        <div className="max-w-2xl">
+          <button
+            onClick={handleCloseViewingScript}
+            className="btn mb-4"
+          >
+            <ArrowLeft className="w-4 h-4" />
+            Back to My Scripts
+          </button>
+          <div className="glass-panel-strong p-4 mb-6">
+            <h2 className="text-white font-semibold">{viewingScript.title}</h2>
+            <p className="text-sm text-[var(--text-muted)] mt-1">
+              {viewingScript.niche} • {viewingScript.topic} • {viewingScript.style}
+            </p>
+          </div>
+          <ScriptDisplay script={savedScriptToGenerated(viewingScript)} />
+        </div>
+      )}
+
+      {/* History Tab - List view */}
+      {activeTab === "history" && !viewingScript && (
+        <div className="max-w-2xl">
+          {isLoadingScripts ? (
+            <div className="flex items-center justify-center py-12">
+              <Loader2 className="w-6 h-6 animate-spin text-[var(--accent-primary)]" />
+            </div>
+          ) : savedScripts.length === 0 ? (
+            <div className="glass-panel p-8 text-center">
+              <History className="w-12 h-12 mx-auto mb-4 text-[var(--text-muted)]" />
+              <h3 className="text-white font-medium mb-2">No saved scripts yet</h3>
+              <p className="text-sm text-[var(--text-tertiary)] mb-4">
+                Generate a script and save it to build your library
+              </p>
+              <button
+                onClick={() => setActiveTab("create")}
+                className="btn btn-primary"
+              >
+                <Sparkles className="w-4 h-4" />
+                Create Your First Script
+              </button>
+            </div>
+          ) : (
+            <div className="space-y-3">
+              {savedScripts.map((script) => (
+                <SavedScriptCard
+                  key={script.id}
+                  script={script}
+                  onView={() => handleViewSavedScript(script)}
+                  onDelete={() => handleDelete(script.id)}
+                  isDeleting={deletingId === script.id}
+                />
+              ))}
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* Create Tab */}
+      {activeTab === "create" && (
+        <div className="max-w-2xl">
+          {!result ? (
           <div className="space-y-6">
             {/* Main Inputs */}
             <div className="glass-panel-strong p-6">
@@ -491,36 +817,42 @@ export default function ScriptsPage() {
               </div>
             )}
           </div>
-        ) : (
-          <div className="space-y-6">
-            {/* Actions */}
-            <div className="flex gap-3">
-              <button
-                onClick={handleReset}
-                className="btn flex-1"
-              >
-                <ArrowLeft className="w-4 h-4" />
-                New Script
-              </button>
-              <button
-                onClick={handleGenerate}
-                disabled={mutation.isPending}
-                className="btn flex-1"
-              >
-                {mutation.isPending ? (
-                  <Loader2 className="w-4 h-4 animate-spin" />
-                ) : (
-                  <RefreshCw className="w-4 h-4" />
-                )}
-                Regenerate
-              </button>
-            </div>
+          ) : (
+            <div className="space-y-6">
+              {/* Actions */}
+              <div className="flex gap-3">
+                <button
+                  onClick={handleReset}
+                  className="btn flex-1"
+                >
+                  <ArrowLeft className="w-4 h-4" />
+                  New Script
+                </button>
+                <button
+                  onClick={handleGenerate}
+                  disabled={mutation.isPending}
+                  className="btn flex-1"
+                >
+                  {mutation.isPending ? (
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                  ) : (
+                    <RefreshCw className="w-4 h-4" />
+                  )}
+                  Regenerate
+                </button>
+              </div>
 
-            {/* Script Display */}
-            <ScriptDisplay script={result} />
-          </div>
-        )}
-      </div>
+              {/* Script Display */}
+              <ScriptDisplay
+                script={result}
+                onSave={handleSave}
+                isSaving={saveMutation.isPending}
+                isSaved={isSaved}
+              />
+            </div>
+          )}
+        </div>
+      )}
     </div>
   );
 }

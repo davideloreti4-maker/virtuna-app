@@ -18,10 +18,14 @@ import {
   Loader2,
   X,
   Check,
+  AlertTriangle,
+  TrendingUp,
 } from "lucide-react";
 import { useAuth } from "@/lib/hooks/use-auth";
 import { useUser, useUpdateProfile } from "@/lib/hooks/use-user";
 import { toastSuccess, toastError } from "@/components/ui/use-toast";
+import { UpgradeModal } from "@/components/upgrade/upgrade-modal";
+import { PlanComparison } from "@/components/upgrade/plan-comparison";
 import type { PlanType } from "@/lib/stripe";
 
 export default function SettingsPage() {
@@ -33,6 +37,8 @@ export default function SettingsPage() {
   const [showEditProfile, setShowEditProfile] = useState(false);
   const [editName, setEditName] = useState("");
   const [isUpgrading, setIsUpgrading] = useState(false);
+  const [showUpgradeModal, setShowUpgradeModal] = useState(false);
+  const [showPlanComparison, setShowPlanComparison] = useState(false);
 
   const profile = userData?.user;
   // Only use userLoading - authLoading can hang if profile doesn't exist in Supabase
@@ -72,6 +78,14 @@ export default function SettingsPage() {
       setIsUpgrading(false);
     }
   };
+
+  const handleUpgradeFromModal = async (plan: PlanType, billing: "monthly" | "yearly") => {
+    await handleUpgrade(plan, billing);
+  };
+
+  // Check if user is approaching or at limit
+  const isAtLimit = remainingAnalyses === 0;
+  const isLowOnAnalyses = remainingAnalyses <= 2 && remainingAnalyses > 0;
 
   const handleEditProfile = () => {
     setEditName(profile?.full_name || "");
@@ -228,12 +242,26 @@ export default function SettingsPage() {
         </div>
       </section>
 
+      {/* Upgrade Modal */}
+      <UpgradeModal
+        isOpen={showUpgradeModal}
+        onClose={() => setShowUpgradeModal(false)}
+        currentPlan={(profile?.plan || "free") as PlanType}
+        usedAnalyses={profile?.analyses_count || 0}
+        limitAnalyses={profile?.analyses_limit || 5}
+        onUpgrade={handleUpgradeFromModal}
+      />
+
       {/* Subscription */}
       <section className="mb-6">
         <div
           className="glass-panel p-5"
           style={{
-            borderColor: "var(--accent-primary)",
+            borderColor: isAtLimit
+              ? "var(--color-danger)"
+              : isLowOnAnalyses
+              ? "var(--color-warning)"
+              : "var(--accent-primary)",
             borderWidth: "1px",
           }}
         >
@@ -241,9 +269,21 @@ export default function SettingsPage() {
             <div className="flex items-center gap-3">
               <div
                 className="w-12 h-12 rounded-xl flex items-center justify-center"
-                style={{ background: "var(--accent-primary-dim)" }}
+                style={{
+                  background: isAtLimit
+                    ? "rgba(var(--color-danger-rgb), 0.15)"
+                    : isLowOnAnalyses
+                    ? "rgba(var(--color-warning-rgb), 0.15)"
+                    : "var(--accent-primary-dim)",
+                }}
               >
-                <Crown className="w-6 h-6 text-[var(--accent-primary)]" />
+                {isAtLimit ? (
+                  <AlertTriangle className="w-6 h-6 text-[var(--color-danger)]" />
+                ) : isLowOnAnalyses ? (
+                  <AlertTriangle className="w-6 h-6 text-[var(--color-warning)]" />
+                ) : (
+                  <Crown className="w-6 h-6 text-[var(--accent-primary)]" />
+                )}
               </div>
               <div>
                 <div className="flex items-center gap-2">
@@ -252,8 +292,20 @@ export default function SettingsPage() {
                   </h3>
                   <span className="badge badge-accent text-xs">Current</span>
                 </div>
-                <p className="text-[var(--text-tertiary)] text-sm">
-                  {remainingAnalyses} of {profile?.analyses_limit || 5} analyses remaining
+                <p
+                  className={`text-sm ${
+                    isAtLimit
+                      ? "text-[var(--color-danger)]"
+                      : isLowOnAnalyses
+                      ? "text-[var(--color-warning)]"
+                      : "text-[var(--text-tertiary)]"
+                  }`}
+                >
+                  {isAtLimit
+                    ? "No analyses remaining this month"
+                    : isLowOnAnalyses
+                    ? `Only ${remainingAnalyses} ${remainingAnalyses === 1 ? "analysis" : "analyses"} left!`
+                    : `${remainingAnalyses} of ${profile?.analyses_limit || 5} analyses remaining`}
                 </p>
               </div>
             </div>
@@ -261,31 +313,85 @@ export default function SettingsPage() {
 
           <div className="breakdown-bar mb-4">
             <div
-              className="breakdown-bar-fill breakdown-bar-fill--accent"
+              className={`breakdown-bar-fill ${
+                isAtLimit
+                  ? "bg-[var(--color-danger)]"
+                  : isLowOnAnalyses
+                  ? "bg-[var(--color-warning)]"
+                  : "breakdown-bar-fill--accent"
+              }`}
               style={{ width: `${Math.min(usagePercentage, 100)}%` }}
             />
           </div>
 
-          {profile?.plan === "free" && (
-            <button
-              onClick={() => handleUpgrade("pro")}
-              disabled={isUpgrading}
-              className="btn btn-primary w-full"
+          {/* Inline upgrade prompt when low or at limit */}
+          {profile?.plan === "free" && (isAtLimit || isLowOnAnalyses) && (
+            <div
+              className={`p-3 rounded-lg mb-4 ${
+                isAtLimit
+                  ? "bg-[var(--color-danger)]/10 border border-[var(--color-danger)]/30"
+                  : "bg-[var(--color-warning)]/10 border border-[var(--color-warning)]/30"
+              }`}
             >
-              {isUpgrading ? (
-                <>
-                  <Loader2 className="w-4 h-4 animate-spin" />
-                  Redirecting to checkout...
-                </>
-              ) : (
-                <>
-                  <Sparkles className="w-4 h-4" />
-                  Upgrade to Pro
-                </>
-              )}
-            </button>
+              <div className="flex items-center gap-3">
+                <TrendingUp
+                  className={`w-5 h-5 flex-shrink-0 ${
+                    isAtLimit ? "text-[var(--color-danger)]" : "text-[var(--color-warning)]"
+                  }`}
+                />
+                <div className="flex-1">
+                  <p className="text-white text-sm font-medium">
+                    {isAtLimit
+                      ? "Upgrade to continue analyzing videos"
+                      : "Running low on analyses"}
+                  </p>
+                  <p className="text-[var(--text-muted)] text-xs">
+                    Pro plan includes 100 analyses/month + AI suggestions
+                  </p>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {profile?.plan === "free" && (
+            <div className="space-y-3">
+              <button
+                onClick={() => setShowUpgradeModal(true)}
+                disabled={isUpgrading}
+                className="btn btn-primary w-full"
+              >
+                {isUpgrading ? (
+                  <>
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                    Redirecting to checkout...
+                  </>
+                ) : (
+                  <>
+                    <Sparkles className="w-4 h-4" />
+                    {isAtLimit ? "Upgrade Now" : "Upgrade to Pro"}
+                  </>
+                )}
+              </button>
+              <button
+                onClick={() => setShowPlanComparison(!showPlanComparison)}
+                className="w-full text-sm text-[var(--text-muted)] hover:text-white transition-colors"
+              >
+                {showPlanComparison ? "Hide" : "Compare"} all plans
+              </button>
+            </div>
           )}
         </div>
+
+        {/* Plan Comparison (expandable) */}
+        {showPlanComparison && profile?.plan === "free" && (
+          <div className="mt-4 animate-fade-in">
+            <PlanComparison
+              currentPlan={(profile?.plan || "free") as PlanType}
+              onUpgrade={handleUpgradeFromModal}
+              isLoading={isUpgrading}
+            />
+          </div>
+        )}
       </section>
 
       {/* Account Settings */}
