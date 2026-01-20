@@ -1,31 +1,26 @@
 "use client";
 
-import { useState } from "react";
 import Link from "next/link";
 import {
   Radar,
   TrendingUp,
   Zap,
   ArrowUpRight,
-  ArrowDownRight,
   Activity,
   Eye,
   ChevronRight,
   ExternalLink,
   Sparkles,
   Loader2,
-  Info,
-  Target,
 } from "lucide-react";
 import { ViralTrendChart } from "@/components/charts/viral-trend-chart";
 import { PerformanceBarChart } from "@/components/charts/performance-bar-chart";
 import { ScoreDistributionChart } from "@/components/charts/score-distribution-chart";
 import { MiniSparkline } from "@/components/charts/mini-sparkline";
 import { GlassPanel } from "@/components/ui/glass-panel";
-import { LevelProgress } from "@/components/ui/level-progress";
 import { useAnalyses } from "@/lib/hooks/use-analyses";
 import { useUser } from "@/lib/hooks/use-user";
-import { formatRelativeDate } from "@/lib/utils/format";
+import { formatRelativeDate, formatNumber } from "@/lib/utils/format";
 import type { AnalysisWithDetails } from "@/types/analysis";
 
 // Mock sparkline data - would come from aggregated stats in production
@@ -34,7 +29,6 @@ const sparklineData2 = [30, 42, 55, 48, 62, 70, 85];
 const sparklineData3 = [80, 75, 82, 78, 85, 90, 88];
 
 export default function DashboardPage() {
-  const [showScoreBreakdown, setShowScoreBreakdown] = useState(false);
   const { data: userData, isLoading: userLoading } = useUser();
   const { data: analysesData, isLoading: analysesLoading } = useAnalyses({ limit: 5 });
 
@@ -45,52 +39,24 @@ export default function DashboardPage() {
     ? Math.round(analyses.reduce((sum, a) => sum + (a.overall_score || 0), 0) / analyses.length)
     : 0;
 
-  // Calculate average component scores for breakdown
-  const avgHookScore = analyses.length
-    ? Math.round(analyses.reduce((sum, a) => sum + (a.hook_score || 0), 0) / analyses.length)
-    : 0;
-  const avgTrendScore = analyses.length
-    ? Math.round(analyses.reduce((sum, a) => sum + (a.trend_score || 0), 0) / analyses.length)
-    : 0;
-  const avgAudioScore = analyses.length
-    ? Math.round(analyses.reduce((sum, a) => sum + (a.audio_score || 0), 0) / analyses.length)
-    : 0;
-
-  // Find weakest area
-  const scoreComponents = [
-    { name: "Hook", score: avgHookScore, tip: "Improve your first 3 seconds" },
-    { name: "Trend", score: avgTrendScore, tip: "Use more trending formats" },
-    { name: "Audio", score: avgAudioScore, tip: "Try trending sounds" },
-  ];
-  const weakestArea = scoreComponents.reduce((min, curr) => curr.score < min.score ? curr : min, scoreComponents[0]);
-
   const user = userData?.user;
   const isLoading = userLoading || analysesLoading;
 
   return (
-    <div style={{ animation: "fadeIn 0.3s ease-out" }}>
+    <div className="animate-fade-in">
       {/* Header */}
-      <header style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "32px" }}>
+      <header className="page-header">
         <div>
-          <h1 style={{ fontSize: "28px", fontWeight: 600, color: "#fff", marginBottom: "4px" }}>Dashboard</h1>
-          <p style={{ color: "rgba(255,255,255,0.45)", fontSize: "14px" }}>
+          <h1 className="page-title">Dashboard</h1>
+          <p className="text-[var(--text-tertiary)] text-sm mt-1">
             Your viral performance at a glance
           </p>
         </div>
-        <div className="flex items-center gap-3">
-          {/* Level Progress - Compact */}
+        <div className="hidden md:flex items-center gap-3">
           {user && (
-            <LevelProgress
-              xp={user.xp || 0}
-              streakDays={user.streak_days || 0}
-              lastAnalysisDate={user.last_analysis_date || null}
-              compact
-            />
-          )}
-          {user && (
-            <div style={{ display: "flex", alignItems: "center", gap: "10px", padding: "6px 12px 6px 6px", background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.08)", borderRadius: "12px" }}>
-              <div style={{ width: "32px", height: "32px", borderRadius: "8px", background: "linear-gradient(135deg, #7C3AED, #FF5757)" }} />
-              <span style={{ color: "#fff", fontSize: "14px", fontWeight: 500 }}>
+            <div className="flex items-center gap-2.5 py-1.5 pl-1.5 pr-3 bg-white/[0.06] border border-white/[0.08] rounded-xl">
+              <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-[#7C3AED] to-[#FF5757]" />
+              <span className="text-white text-sm font-medium">
                 {user.full_name || user.email?.split("@")[0]}
               </span>
             </div>
@@ -99,108 +65,57 @@ export default function DashboardPage() {
       </header>
 
       {/* Main Grid */}
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(12, 1fr)", gap: "20px" }}>
-        {/* Hero Score Card - Enhanced with explainability */}
-        <div style={{ gridColumn: "span 4" }}>
-          <GlassPanel
-            variant="strong"
-            style={{ padding: "24px", height: "100%", cursor: analyses.length > 0 ? "pointer" : "default" }}
-            onClick={() => analyses.length > 0 && setShowScoreBreakdown(!showScoreBreakdown)}
-          >
+      <div className="grid grid-cols-1 md:grid-cols-6 lg:grid-cols-12 gap-4 md:gap-5">
+        {/* Hero Score Card */}
+        <div className="col-span-full md:col-span-3 lg:col-span-4">
+          <GlassPanel variant="strong" className="p-5 md:p-6 h-full">
             <div className="flex items-center justify-between mb-4">
-              <span style={{ color: "rgba(255,255,255,0.4)", fontSize: "11px", textTransform: "uppercase", letterSpacing: "0.05em" }}>
+              <span className="text-white/40 text-[11px] uppercase tracking-wider">
                 Average Viral Score
               </span>
-              <div className="flex items-center gap-2">
-                {analyses.length > 0 && (
-                  <button
-                    style={{ background: "rgba(255,255,255,0.08)", padding: "4px 8px", borderRadius: "6px", border: "none", cursor: "pointer" }}
-                    title="Click for breakdown"
-                  >
-                    <Info className="w-3.5 h-3.5" style={{ color: "rgba(255,255,255,0.5)" }} />
-                  </button>
-                )}
-                <span style={{ background: "rgba(168, 85, 247, 0.2)", color: "#a855f7", padding: "4px 10px", borderRadius: "20px", fontSize: "11px", fontWeight: 500 }}>
-                  All Time
-                </span>
-              </div>
+              <span className="bg-purple-500/20 text-purple-400 px-2.5 py-1 rounded-full text-[11px] font-medium">
+                All Time
+              </span>
             </div>
 
-            <div className="flex items-end gap-4 mb-2">
+            <div className="flex items-end gap-4 mb-4">
               {isLoading ? (
                 <Loader2 className="w-10 h-10 text-virtuna animate-spin" />
               ) : (
                 <>
-                  <span className="font-mono font-bold leading-none" style={{ fontSize: "60px", color: avgScore >= 80 ? "#22c55e" : avgScore >= 60 ? "#7C3AED" : avgScore >= 40 ? "#F59E0B" : "#EF4444", textShadow: `0 0 40px ${avgScore >= 80 ? "rgba(34, 197, 94, 0.4)" : avgScore >= 60 ? "rgba(124, 58, 237, 0.4)" : avgScore >= 40 ? "rgba(245, 158, 11, 0.4)" : "rgba(239, 68, 68, 0.4)"}` }}>
+                  <span className="font-mono font-bold leading-none text-hero text-[#7C3AED]" style={{ textShadow: "0 0 40px rgba(124, 58, 237, 0.4)" }}>
                     {avgScore}
                   </span>
-                  <div className="flex items-center gap-1 mb-2" style={{ color: avgScore >= 60 ? "#22c55e" : "#F59E0B", fontSize: "14px" }}>
-                    {avgScore >= 60 ? <ArrowUpRight className="w-4 h-4" /> : <ArrowDownRight className="w-4 h-4" />}
-                    <span className="font-semibold">{avgScore >= 80 ? "Viral!" : avgScore >= 60 ? "Good" : avgScore >= 40 ? "Fair" : "Needs Work"}</span>
-                  </div>
+                  {avgScore >= 60 && (
+                    <div className="flex items-center gap-1 mb-2 text-green-500 text-sm">
+                      <ArrowUpRight className="w-4 h-4" />
+                      <span className="font-semibold">Good</span>
+                    </div>
+                  )}
                 </>
               )}
             </div>
 
-            {/* Benchmark context */}
-            <p style={{ color: "rgba(255,255,255,0.5)", fontSize: "12px", marginBottom: "12px" }}>
-              {avgScore >= 80 ? "Top 10% of creators!" : avgScore >= 60 ? "Above average. Top creators score 80+" : "Benchmark: Top creators average 78+"}
+            <p className="text-white/60 text-sm mb-4">
+              {avgScore >= 80 ? "Excellent Performance" : avgScore >= 60 ? "Good Performance" : "Room for improvement"}
             </p>
 
-            {/* Score Breakdown - Collapsible */}
-            {showScoreBreakdown && analyses.length > 0 && (
-              <div style={{ marginBottom: "16px", padding: "12px", background: "rgba(255,255,255,0.04)", borderRadius: "10px" }}>
-                <p style={{ color: "rgba(255,255,255,0.6)", fontSize: "11px", textTransform: "uppercase", marginBottom: "10px" }}>
-                  Score Breakdown
-                </p>
-                <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
-                  {scoreComponents.map((comp) => (
-                    <div key={comp.name} className="flex items-center justify-between">
-                      <span style={{ color: "rgba(255,255,255,0.7)", fontSize: "13px" }}>{comp.name}</span>
-                      <div className="flex items-center gap-2">
-                        <div style={{ width: "60px", height: "6px", background: "rgba(255,255,255,0.1)", borderRadius: "3px", overflow: "hidden" }}>
-                          <div style={{ width: `${comp.score}%`, height: "100%", background: comp.score >= 80 ? "#22c55e" : comp.score >= 60 ? "#7C3AED" : comp.score >= 40 ? "#F59E0B" : "#EF4444", borderRadius: "3px" }} />
-                        </div>
-                        <span className="font-mono font-semibold" style={{ color: comp.score >= 80 ? "#22c55e" : comp.score >= 60 ? "#7C3AED" : comp.score >= 40 ? "#F59E0B" : "#EF4444", fontSize: "13px", minWidth: "28px" }}>
-                          {comp.score}
-                        </span>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-                {/* Weakest area highlight */}
-                {weakestArea.score < 70 && (
-                  <div style={{ marginTop: "10px", padding: "8px", background: "rgba(245, 158, 11, 0.1)", borderRadius: "6px", borderLeft: "3px solid #F59E0B" }}>
-                    <p style={{ color: "#F59E0B", fontSize: "11px", fontWeight: 600 }}>Fix this first: {weakestArea.name}</p>
-                    <p style={{ color: "rgba(255,255,255,0.5)", fontSize: "11px" }}>{weakestArea.tip}</p>
-                  </div>
-                )}
-              </div>
-            )}
-
-            {/* Click hint */}
-            {analyses.length > 0 && !showScoreBreakdown && (
-              <p style={{ color: "rgba(255,255,255,0.35)", fontSize: "11px", marginBottom: "12px" }}>
-                Click for breakdown
-              </p>
-            )}
-
-            <MiniSparkline data={sparklineData1} color="#7C3AED" height={40} />
+            <MiniSparkline data={sparklineData1} color="#7C3AED" height={50} />
           </GlassPanel>
         </div>
 
         {/* Weekly Trend Chart */}
-        <div style={{ gridColumn: "span 8" }}>
-          <GlassPanel style={{ padding: "20px", height: "100%" }}>
-            <div className="flex items-center justify-between mb-4">
+        <div className="col-span-full md:col-span-6 lg:col-span-8">
+          <GlassPanel className="p-5 h-full">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4">
               <div>
-                <h3 style={{ color: "#fff", fontWeight: 500 }}>Weekly Trend</h3>
-                <p style={{ color: "rgba(255,255,255,0.45)", fontSize: "12px", marginTop: "2px" }}>Viral score over time</p>
+                <h3 className="text-white font-medium">Weekly Trend</h3>
+                <p className="text-white/45 text-xs mt-0.5">Viral score over time</p>
               </div>
               <div className="flex gap-2">
-                <button style={{ background: "rgba(168, 85, 247, 0.2)", color: "#a855f7", padding: "4px 12px", borderRadius: "20px", fontSize: "11px", fontWeight: 500, border: "none", cursor: "pointer" }}>7D</button>
-                <button style={{ background: "rgba(255,255,255,0.06)", color: "rgba(255,255,255,0.5)", padding: "4px 12px", borderRadius: "20px", fontSize: "11px", fontWeight: 500, border: "none", cursor: "pointer" }}>30D</button>
-                <button style={{ background: "rgba(255,255,255,0.06)", color: "rgba(255,255,255,0.5)", padding: "4px 12px", borderRadius: "20px", fontSize: "11px", fontWeight: 500, border: "none", cursor: "pointer" }}>90D</button>
+                <button className="bg-purple-500/20 text-purple-400 px-3 py-1 rounded-full text-[11px] font-medium border-none cursor-pointer">7D</button>
+                <button className="bg-white/[0.06] text-white/50 px-3 py-1 rounded-full text-[11px] font-medium border-none cursor-pointer">30D</button>
+                <button className="bg-white/[0.06] text-white/50 px-3 py-1 rounded-full text-[11px] font-medium border-none cursor-pointer">90D</button>
               </div>
             </div>
             <ViralTrendChart />
@@ -208,97 +123,81 @@ export default function DashboardPage() {
         </div>
 
         {/* Stats Row */}
-        <div style={{ gridColumn: "span 3" }}>
-          <GlassPanel style={{ padding: "20px", height: "100%" }}>
+        <div className="col-span-1 md:col-span-3 lg:col-span-3">
+          <GlassPanel className="p-4 md:p-5 h-full">
             <div className="flex items-center justify-between mb-3">
-              <span style={{ display: "flex", alignItems: "center", gap: "8px", fontSize: "13px", color: "rgba(255,255,255,0.6)" }}>
-                <Activity className="w-4 h-4" style={{ color: "#7C3AED" }} />
+              <span className="flex items-center gap-2 text-xs md:text-[13px] text-white/60">
+                <Activity className="w-4 h-4 text-[#FF5757]" />
                 Total Analyses
               </span>
             </div>
-            <div style={{ fontSize: "30px", fontWeight: 700, fontFamily: "var(--font-jetbrains), monospace", color: "#fff", marginBottom: "8px" }}>
+            <div className="metric-value mb-2">
               {isLoading ? <Loader2 className="w-6 h-6 animate-spin" /> : totalAnalyses}
             </div>
-            <MiniSparkline data={sparklineData2} color="#7C3AED" height={35} />
+            <MiniSparkline data={sparklineData2} color="#FF5757" height={35} />
           </GlassPanel>
         </div>
 
-        <div style={{ gridColumn: "span 3" }}>
-          <GlassPanel style={{ padding: "20px", height: "100%" }}>
+        <div className="col-span-1 md:col-span-3 lg:col-span-3">
+          <GlassPanel className="p-4 md:p-5 h-full">
             <div className="flex items-center justify-between mb-3">
-              <span style={{ display: "flex", alignItems: "center", gap: "8px", fontSize: "13px", color: "rgba(255,255,255,0.6)" }}>
-                <Zap className="w-4 h-4" style={{ color: "#FF5757" }} />
+              <span className="flex items-center gap-2 text-xs md:text-[13px] text-white/60">
+                <Zap className="w-4 h-4 text-[#7C3AED]" />
                 Viral Hits (80+)
               </span>
             </div>
-            <div style={{ fontSize: "30px", fontWeight: 700, fontFamily: "var(--font-jetbrains), monospace", color: "#FF5757", marginBottom: "8px" }}>
+            <div className="metric-value metric-value--accent mb-2">
               {isLoading ? <Loader2 className="w-6 h-6 animate-spin" /> : viralCount}
             </div>
-            <MiniSparkline data={sparklineData3} color="#FF5757" height={35} />
+            <MiniSparkline data={sparklineData3} color="#7C3AED" height={35} />
           </GlassPanel>
         </div>
 
-        <div style={{ gridColumn: "span 3" }}>
-          <GlassPanel style={{ padding: "20px", height: "100%" }}>
+        <div className="col-span-1 md:col-span-3 lg:col-span-3">
+          <GlassPanel className="p-4 md:p-5 h-full">
             <div className="flex items-center justify-between mb-3">
-              <span style={{ display: "flex", alignItems: "center", gap: "8px", fontSize: "13px", color: "rgba(255,255,255,0.6)" }}>
-                <Eye className="w-4 h-4" style={{ color: "#a855f7" }} />
+              <span className="flex items-center gap-2 text-xs md:text-[13px] text-white/60">
+                <Eye className="w-4 h-4 text-purple-400" />
                 Analyses Left
               </span>
             </div>
-            <div style={{ fontSize: "30px", fontWeight: 700, fontFamily: "var(--font-jetbrains), monospace", color: "#7C3AED", marginBottom: "4px" }}>
+            <div className="metric-value metric-value--cyan mb-1">
               {isLoading ? (
                 <Loader2 className="w-6 h-6 animate-spin" />
               ) : (
                 user ? (user.analyses_limit - user.analyses_count) : 5
               )}
             </div>
-            <p style={{ color: "rgba(255,255,255,0.4)", fontSize: "12px" }}>
+            <p className="text-white/40 text-xs">
               of {user?.analyses_limit || 5} on {user?.plan || "free"} plan
             </p>
           </GlassPanel>
         </div>
 
-        <div style={{ gridColumn: "span 3" }}>
-          <GlassPanel style={{ padding: "20px", height: "100%" }}>
+        <div className="col-span-1 md:col-span-3 lg:col-span-3">
+          <GlassPanel className="p-4 md:p-5 h-full">
             <div className="flex items-center justify-between mb-3">
-              <span style={{ display: "flex", alignItems: "center", gap: "8px", fontSize: "13px", color: "rgba(255,255,255,0.6)" }}>
-                <TrendingUp className="w-4 h-4" style={{ color: "#22c55e" }} />
+              <span className="flex items-center gap-2 text-xs md:text-[13px] text-white/60">
+                <TrendingUp className="w-4 h-4 text-green-500" />
                 Success Rate
               </span>
             </div>
-            {/* Hide crushing 0% for new users - show encouraging message instead */}
-            {totalAnalyses < 5 ? (
-              <>
-                <div style={{ fontSize: "16px", fontWeight: 600, color: "rgba(255,255,255,0.7)", marginBottom: "4px" }}>
-                  Building baseline...
-                </div>
-                <p style={{ color: "rgba(255,255,255,0.4)", fontSize: "12px" }}>
-                  Analyze {5 - totalAnalyses} more video{5 - totalAnalyses !== 1 ? "s" : ""} to see your rate
-                </p>
-              </>
-            ) : (
-              <>
-                <div style={{ fontSize: "30px", fontWeight: 700, fontFamily: "var(--font-jetbrains), monospace", color: viralCount > 0 ? "#22c55e" : "#fff", marginBottom: "4px" }}>
-                  {Math.round((viralCount / totalAnalyses) * 100)}%
-                </div>
-                <p style={{ color: "rgba(255,255,255,0.4)", fontSize: "12px" }}>
-                  {viralCount > 0 ? `${viralCount} viral hit${viralCount !== 1 ? "s" : ""}!` : "Pro creators avg 15%"}
-                </p>
-              </>
-            )}
+            <div className="metric-value mb-1">
+              {totalAnalyses > 0 ? Math.round((viralCount / totalAnalyses) * 100) : 0}%
+            </div>
+            <p className="text-white/40 text-xs">Videos scoring 80+</p>
           </GlassPanel>
         </div>
 
         {/* Monthly Performance */}
-        <div style={{ gridColumn: "span 6" }}>
-          <GlassPanel style={{ padding: "20px", height: "100%" }}>
+        <div className="col-span-full md:col-span-6 lg:col-span-6">
+          <GlassPanel className="p-4 md:p-5 h-full">
             <div className="flex items-center justify-between mb-4">
               <div>
-                <h3 style={{ color: "#fff", fontWeight: 500 }}>Monthly Performance</h3>
-                <p style={{ color: "rgba(255,255,255,0.45)", fontSize: "12px", marginTop: "2px" }}>Analyses vs Viral hits</p>
+                <h3 className="text-white font-medium">Monthly Performance</h3>
+                <p className="text-white/45 text-xs mt-0.5">Analyses vs Viral hits</p>
               </div>
-              <Link href="/library" style={{ color: "#7C3AED", fontSize: "12px", fontWeight: 500, display: "flex", alignItems: "center", gap: "4px", textDecoration: "none" }}>
+              <Link href="/library" className="text-[#7C3AED] text-xs font-medium flex items-center gap-1 no-underline">
                 View Details
                 <ChevronRight className="w-3 h-3" />
               </Link>
@@ -308,107 +207,77 @@ export default function DashboardPage() {
         </div>
 
         {/* Score Distribution */}
-        <div style={{ gridColumn: "span 3" }}>
-          <GlassPanel style={{ padding: "20px", height: "100%" }}>
+        <div className="col-span-full md:col-span-3 lg:col-span-3">
+          <GlassPanel className="p-4 md:p-5 h-full">
             <div className="mb-4">
-              <h3 style={{ color: "#fff", fontWeight: 500 }}>Score Distribution</h3>
-              <p style={{ color: "rgba(255,255,255,0.45)", fontSize: "12px", marginTop: "2px" }}>By performance tier</p>
+              <h3 className="text-white font-medium">Score Distribution</h3>
+              <p className="text-white/45 text-xs mt-0.5">By performance tier</p>
             </div>
             <ScoreDistributionChart />
           </GlassPanel>
         </div>
 
         {/* Quick Actions */}
-        <div style={{ gridColumn: "span 3" }}>
-          <GlassPanel style={{ padding: "20px", height: "100%" }}>
-            <h3 style={{ color: "#fff", fontWeight: 500, marginBottom: "16px" }}>Quick Actions</h3>
-            <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
+        <div className="col-span-full md:col-span-3 lg:col-span-3">
+          <GlassPanel className="p-4 md:p-5 h-full">
+            <h3 className="text-white font-medium mb-4">Quick Actions</h3>
+            <div className="flex flex-col gap-3">
               <Link
                 href="/analyze"
-                style={{
-                  display: "flex",
-                  alignItems: "center",
-                  gap: "12px",
-                  padding: "12px",
-                  borderRadius: "12px",
-                  background: "rgba(124, 58, 237, 0.12)",
-                  border: "1px solid rgba(124, 58, 237, 0.3)",
-                  textDecoration: "none",
-                  transition: "all 200ms ease",
-                }}
+                className="flex items-center gap-3 p-3 rounded-xl bg-[#7C3AED]/10 border border-[#7C3AED]/30 no-underline transition-all hover:bg-[#7C3AED]/15"
               >
-                <div style={{ width: "40px", height: "40px", borderRadius: "10px", background: "linear-gradient(135deg, #7C3AED, #FF5757)", display: "flex", alignItems: "center", justifyContent: "center" }}>
-                  <Radar className="w-5 h-5" style={{ color: "#fff" }} />
+                <div className="w-10 h-10 rounded-[10px] bg-[#7C3AED] flex items-center justify-center">
+                  <Radar className="w-5 h-5 text-black" />
                 </div>
-                <div>
-                  <span style={{ color: "#fff", fontWeight: 500, fontSize: "14px", display: "block" }}>New Analysis</span>
-                  <span style={{ color: "rgba(255,255,255,0.45)", fontSize: "12px" }}>Predict viral potential</span>
+                <div className="flex-1 min-w-0">
+                  <span className="text-white font-medium text-sm block">New Analysis</span>
+                  <span className="text-white/45 text-xs">Predict viral potential</span>
                 </div>
-                <ArrowUpRight className="w-4 h-4" style={{ color: "#7C3AED", marginLeft: "auto" }} />
+                <ArrowUpRight className="w-4 h-4 text-[#7C3AED] flex-shrink-0" />
               </Link>
 
               <Link
                 href="/library"
-                style={{
-                  display: "flex",
-                  alignItems: "center",
-                  gap: "12px",
-                  padding: "12px",
-                  borderRadius: "12px",
-                  background: "rgba(255, 255, 255, 0.04)",
-                  border: "1px solid rgba(255, 255, 255, 0.06)",
-                  textDecoration: "none",
-                  transition: "all 200ms ease",
-                }}
+                className="flex items-center gap-3 p-3 rounded-xl bg-white/[0.04] border border-white/[0.06] no-underline transition-all hover:bg-white/[0.06]"
               >
-                <div style={{ width: "40px", height: "40px", borderRadius: "10px", background: "rgba(255,255,255,0.08)", display: "flex", alignItems: "center", justifyContent: "center" }}>
-                  <Eye className="w-5 h-5" style={{ color: "#7C3AED" }} />
+                <div className="w-10 h-10 rounded-[10px] bg-white/[0.08] flex items-center justify-center">
+                  <Eye className="w-5 h-5 text-[#FF5757]" />
                 </div>
-                <div>
-                  <span style={{ color: "#fff", fontWeight: 500, fontSize: "14px", display: "block" }}>View History</span>
-                  <span style={{ color: "rgba(255,255,255,0.45)", fontSize: "12px" }}>{totalAnalyses} analyses saved</span>
+                <div className="flex-1 min-w-0">
+                  <span className="text-white font-medium text-sm block">View History</span>
+                  <span className="text-white/45 text-xs">{totalAnalyses} analyses saved</span>
                 </div>
-                <ChevronRight className="w-4 h-4" style={{ color: "rgba(255,255,255,0.4)", marginLeft: "auto" }} />
+                <ChevronRight className="w-4 h-4 text-white/40 flex-shrink-0" />
               </Link>
 
               <Link
                 href="/settings"
-                style={{
-                  display: "flex",
-                  alignItems: "center",
-                  gap: "12px",
-                  padding: "12px",
-                  borderRadius: "12px",
-                  background: "rgba(255, 255, 255, 0.04)",
-                  border: "1px solid rgba(255, 255, 255, 0.06)",
-                  textDecoration: "none",
-                  transition: "all 200ms ease",
-                }}
+                className="flex items-center gap-3 p-3 rounded-xl bg-white/[0.04] border border-white/[0.06] no-underline transition-all hover:bg-white/[0.06]"
               >
-                <div style={{ width: "40px", height: "40px", borderRadius: "10px", background: "rgba(255,255,255,0.08)", display: "flex", alignItems: "center", justifyContent: "center" }}>
-                  <Sparkles className="w-5 h-5" style={{ color: "#a855f7" }} />
+                <div className="w-10 h-10 rounded-[10px] bg-white/[0.08] flex items-center justify-center">
+                  <Sparkles className="w-5 h-5 text-purple-400" />
                 </div>
-                <div>
-                  <span style={{ color: "#fff", fontWeight: 500, fontSize: "14px", display: "block" }}>Upgrade Plan</span>
-                  <span style={{ color: "rgba(255,255,255,0.45)", fontSize: "12px" }}>Get more analyses</span>
+                <div className="flex-1 min-w-0">
+                  <span className="text-white font-medium text-sm block">Upgrade Plan</span>
+                  <span className="text-white/45 text-xs">Get more analyses</span>
                 </div>
-                <ChevronRight className="w-4 h-4" style={{ color: "rgba(255,255,255,0.4)", marginLeft: "auto" }} />
+                <ChevronRight className="w-4 h-4 text-white/40 flex-shrink-0" />
               </Link>
             </div>
           </GlassPanel>
         </div>
 
         {/* Recent Analyses */}
-        <div style={{ gridColumn: "span 6" }}>
-          <GlassPanel style={{ padding: "20px" }}>
+        <div className="col-span-full md:col-span-6 lg:col-span-6">
+          <GlassPanel className="p-4 md:p-5">
             <div className="flex items-center justify-between mb-4">
               <div>
-                <h3 style={{ color: "#fff", fontWeight: 500 }}>Recent Analyses</h3>
-                <p style={{ color: "rgba(255,255,255,0.45)", fontSize: "12px", marginTop: "2px" }}>Your latest video predictions</p>
+                <h3 className="text-white font-medium">Recent Analyses</h3>
+                <p className="text-white/45 text-xs mt-0.5">Your latest video predictions</p>
               </div>
               <Link
                 href="/library"
-                style={{ color: "#c8ff00", fontSize: "12px", fontWeight: 500, display: "flex", alignItems: "center", gap: "4px", textDecoration: "none" }}
+                className="text-[#7C3AED] text-xs font-medium flex items-center gap-1 no-underline"
               >
                 View All
                 <ChevronRight className="w-3 h-3" />
@@ -421,7 +290,7 @@ export default function DashboardPage() {
               </div>
             ) : analyses.length === 0 ? (
               <div className="text-center py-8">
-                <p style={{ color: "rgba(255,255,255,0.45)", fontSize: "14px", marginBottom: "16px" }}>
+                <p className="text-white/45 text-sm mb-4">
                   No analyses yet. Start by analyzing your first video!
                 </p>
                 <Link href="/analyze" className="btn btn-primary">
@@ -431,16 +300,16 @@ export default function DashboardPage() {
               </div>
             ) : (
               <>
-                {/* Table Header */}
-                <div className="grid grid-cols-12 gap-4" style={{ padding: "8px 0", borderBottom: "1px solid rgba(255,255,255,0.08)", marginBottom: "8px" }}>
-                  <span className="col-span-5" style={{ color: "rgba(255,255,255,0.4)", fontSize: "11px", textTransform: "uppercase", letterSpacing: "0.05em" }}>Video</span>
-                  <span className="col-span-2" style={{ color: "rgba(255,255,255,0.4)", fontSize: "11px", textTransform: "uppercase", letterSpacing: "0.05em" }}>Date</span>
-                  <span className="col-span-3" style={{ color: "rgba(255,255,255,0.4)", fontSize: "11px", textTransform: "uppercase", letterSpacing: "0.05em" }}>Performance</span>
-                  <span className="col-span-2 text-right" style={{ color: "rgba(255,255,255,0.4)", fontSize: "11px", textTransform: "uppercase", letterSpacing: "0.05em" }}>Score</span>
+                {/* Table Header - Hidden on mobile */}
+                <div className="hidden md:grid grid-cols-12 gap-4 py-2 border-b border-white/[0.08] mb-2">
+                  <span className="col-span-5 text-white/40 text-[11px] uppercase tracking-wider">Video</span>
+                  <span className="col-span-2 text-white/40 text-[11px] uppercase tracking-wider">Date</span>
+                  <span className="col-span-3 text-white/40 text-[11px] uppercase tracking-wider">Performance</span>
+                  <span className="col-span-2 text-right text-white/40 text-[11px] uppercase tracking-wider">Score</span>
                 </div>
 
                 {/* Table Rows */}
-                <div style={{ display: "flex", flexDirection: "column", gap: "4px" }}>
+                <div className="flex flex-col gap-1">
                   {analyses.slice(0, 4).map((analysis) => (
                     <RecentAnalysisRow key={analysis.id} analysis={analysis} />
                   ))}
@@ -451,63 +320,40 @@ export default function DashboardPage() {
         </div>
 
         {/* AI Insights */}
-        <div style={{ gridColumn: "span 6" }}>
-          <GlassPanel variant="strong" style={{ padding: "20px" }}>
+        <div className="col-span-full md:col-span-6 lg:col-span-6">
+          <GlassPanel variant="strong" className="p-4 md:p-5">
             <div className="flex items-center gap-3 mb-4">
-              <div style={{ width: "40px", height: "40px", borderRadius: "10px", background: "linear-gradient(135deg, #7C3AED, #FF5757)", display: "flex", alignItems: "center", justifyContent: "center" }}>
-                <Sparkles className="w-5 h-5" style={{ color: "#fff" }} />
+              <div className="w-10 h-10 rounded-[10px] bg-gradient-to-br from-purple-500 to-[#FF5757] flex items-center justify-center">
+                <Sparkles className="w-5 h-5 text-white" />
               </div>
               <div>
-                <h3 style={{ color: "#fff", fontWeight: 500 }}>AI Insights</h3>
-                <p style={{ color: "rgba(255,255,255,0.45)", fontSize: "12px", marginTop: "2px" }}>Based on your recent performance</p>
+                <h3 className="text-white font-medium">AI Insights</h3>
+                <p className="text-white/45 text-xs mt-0.5">Based on your recent performance</p>
               </div>
             </div>
 
-            <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
+            <div className="flex flex-col gap-3">
               {analyses.length === 0 ? (
-                <div style={{ padding: "20px", background: "rgba(255,255,255,0.04)", borderRadius: "10px", textAlign: "center" }}>
-                  <Target className="w-8 h-8 mx-auto mb-3" style={{ color: "rgba(255,255,255,0.3)" }} />
-                  <p style={{ color: "rgba(255,255,255,0.6)", fontSize: "14px", marginBottom: "12px" }}>
-                    Analyze your first video to get personalized insights
-                  </p>
-                  <Link href="/analyze" className="btn btn-primary" style={{ display: "inline-flex" }}>
-                    <Radar className="w-4 h-4" />
-                    Start Analysis
-                  </Link>
-                </div>
+                <p className="text-white/45 text-sm">
+                  Analyze some videos to get personalized insights!
+                </p>
               ) : (
                 <>
-                  {/* Primary insight - based on actual data */}
                   <InsightCard
-                    title={avgScore >= 80 ? "You're on Fire!" : avgScore >= 60 ? "Solid Performance" : "Keep Learning"}
-                    description={`Based on ${totalAnalyses} analysis${totalAnalyses !== 1 ? "es" : ""}: Your average score is ${avgScore}. ${avgScore >= 80 ? "You're in the top 10% of creators!" : avgScore >= 60 ? "You're above average - keep it up!" : "Each analysis helps you improve."}`}
+                    title="Keep Up the Good Work!"
+                    description={`You've analyzed ${totalAnalyses} video${totalAnalyses !== 1 ? 's' : ''} with an average score of ${avgScore}.`}
                     trend={avgScore >= 70 ? "positive" : avgScore >= 50 ? "neutral" : "negative"}
                   />
-
-                  {/* Specific actionable insight based on weakest area */}
-                  {analyses.length > 0 && weakestArea.score < 75 && (
+                  <InsightCard
+                    title="Optimal Posting Time"
+                    description="Your best-performing videos were posted between 7-9 PM EST. Consider this window."
+                    trend="neutral"
+                  />
+                  {avgScore < 70 && (
                     <InsightCard
-                      title={`Improve Your ${weakestArea.name} Score`}
-                      description={`Your ${weakestArea.name.toLowerCase()} scores average ${weakestArea.score}. ${weakestArea.tip} to boost your viral potential.`}
-                      trend="neutral"
-                    />
-                  )}
-
-                  {/* Best performer highlight */}
-                  {viralCount > 0 && (
-                    <InsightCard
-                      title={`${viralCount} Viral Hit${viralCount !== 1 ? "s" : ""}!`}
-                      description={`You have ${viralCount} video${viralCount !== 1 ? "s" : ""} scoring 80+. Review what worked and replicate it.`}
-                      trend="positive"
-                    />
-                  )}
-
-                  {/* Timing insight - only show if they have some data */}
-                  {totalAnalyses >= 3 && (
-                    <InsightCard
-                      title="Best Posting Times"
-                      description="Peak engagement: 7-9 PM EST weekdays. Schedule your best content for these windows."
-                      trend="neutral"
+                      title="Room for Improvement"
+                      description="Focus on stronger hooks and trending audio to boost your scores."
+                      trend="negative"
                     />
                   )}
                 </>
@@ -542,9 +388,10 @@ function RecentAnalysisRow({ analysis }: { analysis: AnalysisWithDetails }) {
   return (
     <Link
       href={`/library/${analysis.id}`}
-      className="grid grid-cols-12 gap-4 py-3 items-center hover:bg-[var(--glass-bg)] rounded-lg px-2 -mx-2 transition-all group"
+      className="flex md:grid md:grid-cols-12 gap-3 md:gap-4 py-3 items-center hover:bg-[var(--glass-bg)] rounded-lg px-2 -mx-2 transition-all group"
     >
-      <div className="col-span-5 flex items-center gap-3">
+      {/* Mobile: simplified layout */}
+      <div className="flex-shrink-0">
         {analysis.metadata?.thumbnailUrl ? (
           <img
             src={analysis.metadata.thumbnailUrl}
@@ -556,21 +403,29 @@ function RecentAnalysisRow({ analysis }: { analysis: AnalysisWithDetails }) {
             #{videoId}
           </div>
         )}
-        <span className="text-white text-sm font-medium truncate">
+      </div>
+
+      {/* Desktop: full grid layout */}
+      <div className="flex-1 min-w-0 md:col-span-4 md:flex md:items-center md:gap-3">
+        <span className="text-white text-sm font-medium truncate block">
           {analysis.metadata?.author ? `@${analysis.metadata.author}` : `Video #${videoId}`}
         </span>
+        <span className="text-[var(--text-tertiary)] text-xs md:hidden">{formatRelativeDate(analysis.created_at)}</span>
       </div>
-      <div className="col-span-2">
+
+      <div className="hidden md:block md:col-span-2">
         <span className="text-[var(--text-tertiary)] text-sm">{formatRelativeDate(analysis.created_at)}</span>
       </div>
-      <div className="col-span-3 flex gap-1.5">
+
+      <div className="hidden md:flex md:col-span-3 gap-1.5">
         <MiniMetric label="H" value={analysis.hook_score || 0} />
         <MiniMetric label="T" value={analysis.trend_score || 0} />
         <MiniMetric label="A" value={analysis.audio_score || 0} />
       </div>
-      <div className="col-span-2 flex items-center justify-end gap-2">
+
+      <div className="flex-shrink-0 md:col-span-3 flex items-center justify-end gap-2">
         <span
-          className="font-mono font-bold text-lg px-3 py-1 rounded-lg"
+          className="font-mono font-bold text-base md:text-lg px-2.5 md:px-3 py-1 rounded-lg"
           style={{
             color: getScoreColor(score),
             background: getScoreBg(score),
@@ -578,7 +433,7 @@ function RecentAnalysisRow({ analysis }: { analysis: AnalysisWithDetails }) {
         >
           {score}
         </span>
-        <div className="btn-icon w-8 h-8 opacity-0 group-hover:opacity-100 transition-opacity">
+        <div className="btn-icon w-8 h-8 opacity-0 group-hover:opacity-100 transition-opacity hidden md:flex">
           <ExternalLink className="w-3.5 h-3.5" />
         </div>
       </div>

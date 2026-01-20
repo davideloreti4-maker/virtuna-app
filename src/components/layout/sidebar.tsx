@@ -49,11 +49,9 @@ export function Sidebar() {
           WebkitBackdropFilter: "blur(40px)",
           borderRight: "1px solid rgba(255, 255, 255, 0.15)",
           padding: "24px 16px",
-          display: "flex",
-          flexDirection: "column",
           zIndex: 100,
         }}
-        className="max-lg:hidden"
+        className="hidden lg:flex flex-col"
       >
         {/* Logo */}
         <div style={{ padding: "8px 12px", marginBottom: "32px" }}>

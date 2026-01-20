@@ -1,5 +1,5 @@
 import { Sidebar } from "@/components/layout/sidebar";
-import { MobileNav } from "@/components/layout/mobile-nav";
+import { BottomNav } from "@/components/layout/bottom-nav";
 
 export default function DashboardLayout({
   children,
@@ -9,13 +9,10 @@ export default function DashboardLayout({
   return (
     <>
       <Sidebar />
-      <main
-        style={{ marginLeft: "240px", minHeight: "100vh", padding: "24px" }}
-        className="max-lg:ml-0 max-lg:pb-24"
-      >
+      <main className="lg:ml-[240px] min-h-screen p-4 md:p-6 pb-24 lg:pb-6">
         {children}
       </main>
-      <MobileNav />
+      <BottomNav />
     </>
   );
 }
