@@ -507,4 +507,184 @@ body {
   border: 1px solid var(--accent-primary);
 }
 
+/* ============================================
+   Base Button Class
+   ============================================ */
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 0.625rem 1rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+  border-radius: 0.75rem;
+  transition: all 200ms ease;
+  cursor: pointer;
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+@media (min-width: 640px) {
+  .btn {
+    padding: 0.75rem 1.25rem;
+  }
+}
+
+.btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* ============================================
+   Input Styles
+   ============================================ */
+
+.input {
+  width: 100%;
+  padding: 0.75rem 1rem;
+  font-size: 0.875rem;
+  color: white;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 0.75rem;
+  transition: all 200ms ease;
+  outline: none;
+}
+
+.input::placeholder {
+  color: var(--text-muted);
+}
+
+.input:focus {
+  background: rgba(255, 255, 255, 0.08);
+  border-color: var(--accent-primary);
+  box-shadow: 0 0 0 3px rgba(124, 58, 237, 0.1);
+}
+
+.input-with-icon {
+  position: relative;
+}
+
+.input-with-icon svg {
+  position: absolute;
+  left: 1rem;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 1.25rem;
+  height: 1.25rem;
+  color: var(--text-muted);
+  pointer-events: none;
+}
+
+.input-with-icon input {
+  padding-left: 2.75rem;
+}
+
+/* ============================================
+   Score Display
+   ============================================ */
+
+.score-hero {
+  text-align: center;
+  padding: 2rem 1.5rem;
+}
+
+@media (min-width: 640px) {
+  .score-hero {
+    padding: 2.5rem 2rem;
+  }
+}
+
+.score-value {
+  font-size: 4rem;
+  font-weight: 700;
+  font-family: var(--font-jetbrains), monospace;
+  line-height: 1;
+  margin-bottom: 0.5rem;
+}
+
+@media (min-width: 640px) {
+  .score-value {
+    font-size: 5rem;
+  }
+}
+
+.score-label {
+  font-size: 0.875rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+/* ============================================
+   Breakdown Styles
+   ============================================ */
+
+.breakdown-item {
+  margin-bottom: 1rem;
+}
+
+.breakdown-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.5rem;
+}
+
+.breakdown-label {
+  font-size: 0.8125rem;
+  font-weight: 500;
+}
+
+.breakdown-value {
+  font-size: 0.875rem;
+  font-weight: 600;
+  font-family: var(--font-jetbrains), monospace;
+  color: white;
+}
+
+.breakdown-bar {
+  height: 6px;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 3px;
+  overflow: hidden;
+}
+
+.breakdown-bar-fill {
+  height: 100%;
+  border-radius: 3px;
+  transition: width 500ms ease;
+}
+
+.breakdown-bar-fill--accent {
+  background: linear-gradient(90deg, var(--accent-primary), var(--accent-primary-light));
+}
+
+/* ============================================
+   Mobile-First Utilities
+   ============================================ */
+
+/* Safe area padding for notched devices */
+.safe-bottom {
+  padding-bottom: max(1rem, env(safe-area-inset-bottom));
+}
+
+/* Touch-friendly minimum sizes */
+.touch-target {
+  min-height: 44px;
+  min-width: 44px;
+}
+
+/* Hide scrollbar but allow scrolling */
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}
+
 /* Additional color variables are defined in the main :root block at the top */

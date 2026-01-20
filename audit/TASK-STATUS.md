@@ -1,7 +1,7 @@
 # Virtuna Audit - Task & Status Tracker
 
 **Last Updated:** 2026-01-20
-**Overall Progress:** 5/26 tasks complete
+**Overall Progress:** 10/26 tasks complete
 
 ---
 
@@ -27,13 +27,13 @@ Run the migration in Supabase SQL Editor:
 
 | ID | Task | Status | Effort | Notes |
 |----|------|--------|--------|-------|
-| T-006 | Add "Try Sample Video" to /analyze | ⬜ TODO | 4h | Reduce first-analysis friction |
-| T-007 | Create encouraging empty state for Dashboard | ⬜ TODO | 6h | Hide zeros, show motivation |
-| T-008 | Add "Analyze First Video" CTA to empty dashboard | ⬜ TODO | 2h | Clear path to value |
-| T-009 | Hide Viral Hits card for users <3 analyses | ⬜ TODO | 2h | Don't show "0" to new users |
-| T-010 | Add URL format hints to /analyze | ⬜ TODO | 1h | Show accepted formats |
+| T-006 | Add "Try Sample Video" to /analyze | ✅ DONE | 4h | Added "Try Sample" button with sample TikTok URL |
+| T-007 | Create encouraging empty state for Dashboard | ✅ DONE | 6h | Full welcome screen for new users |
+| T-008 | Add "Analyze First Video" CTA to empty dashboard | ✅ DONE | 2h | Prominent hero CTA in welcome state |
+| T-009 | Hide Viral Hits card for users <3 analyses | ✅ DONE | 2h | Shows "Pro Tip" instead for new users |
+| T-010 | Add URL format hints to /analyze | ✅ DONE | 1h | Shows accepted formats below input |
 
-**Phase 2 Progress:** 0/5 complete
+**Phase 2 Progress:** 5/5 complete
 
 ---
 
@@ -105,6 +105,26 @@ Run the migration in Supabase SQL Editor:
 
 ### 2026-01-20
 
+**Phase 2 Activation Quick Wins - COMPLETED**
+
+- **T-006**: Added "Try Sample" button to /analyze page
+  - Pre-fills a sample TikTok URL for users to try without their own video
+  - Button only shows when input is empty
+
+- **T-007 & T-008**: Created welcoming empty state for Dashboard
+  - New users (0 analyses) see a full welcome screen
+  - Hero CTA with "Analyze Your First Video" button
+  - "What You'll Discover" section explaining features
+
+- **T-009**: Hide Viral Hits card for new users
+  - Users with <3 analyses see "Pro Tip" card instead
+  - Encourages them to analyze more to unlock stats
+
+- **T-010**: Added URL format hints to /analyze
+  - Shows accepted formats below input field
+
+---
+
 **Phase 1 Critical Fixes - COMPLETED**
 
 - **T-001 & T-002**: Created migration `002_hooks_and_leaderboard.sql` that:
@@ -133,7 +153,7 @@ Run the migration in Supabase SQL Editor:
 ## Quick Stats
 
 - **Total Tasks:** 26
-- **Completed:** 5
+- **Completed:** 10
 - **In Progress:** 0
-- **Remaining:** 21
-- **Estimated Hours:** ~76h remaining
+- **Remaining:** 16
+- **Estimated Hours:** ~61h remaining

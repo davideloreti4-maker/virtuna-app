@@ -15,7 +15,7 @@ export function BottomNav() {
   const pathname = usePathname();
 
   return (
-    <nav className="bottom-nav">
+    <nav className="bottom-nav lg:hidden">
       {navItems.map(({ href, icon: Icon, label }) => {
         const isActive = pathname === href || (href !== "/" && pathname.startsWith(href));
 

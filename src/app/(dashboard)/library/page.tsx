@@ -43,16 +43,18 @@ export default function LibraryPage() {
   return (
     <div className="animate-fade-in">
       {/* Header */}
-      <header className="page-header">
-        <div className="flex items-center gap-4">
-          <Link href="/" className="btn-icon">
-            <ArrowLeft className="w-5 h-5" />
-          </Link>
-          <div>
-            <h1 className="page-title">Library</h1>
-            <p className="text-[var(--text-tertiary)] text-sm mt-1">
-              {data?.pagination.total || 0} analyses saved
-            </p>
+      <header className="flex flex-col gap-4 mb-6">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-3 sm:gap-4">
+            <Link href="/" className="btn-icon flex-shrink-0">
+              <ArrowLeft className="w-5 h-5" />
+            </Link>
+            <div>
+              <h1 className="page-title">Library</h1>
+              <p className="text-[var(--text-tertiary)] text-xs sm:text-sm mt-1">
+                {data?.pagination.total || 0} analyses saved
+              </p>
+            </div>
           </div>
         </div>
         <div className="search-bar">
@@ -92,7 +94,7 @@ export default function LibraryPage() {
       </div>
 
       {/* Filter Tabs */}
-      <div className="flex gap-2 mb-6">
+      <div className="flex flex-wrap gap-2 mb-6">
         <FilterButton
           active={filter === "all"}
           onClick={() => setFilter("all")}
@@ -231,89 +233,79 @@ function AnalysisCard({ analysis }: { analysis: AnalysisWithDetails }) {
   return (
     <Link
       href={`/library/${analysis.id}`}
-      className="glass-panel p-4 hover:bg-[var(--glass-bg-hover)] transition-all block"
+      className="glass-panel p-3 sm:p-4 hover:bg-[var(--glass-bg-hover)] transition-all block"
     >
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-4">
-          {/* Thumbnail */}
-          {analysis.metadata?.thumbnailUrl ? (
-            <img
-              src={analysis.metadata.thumbnailUrl}
-              alt=""
-              className="w-14 h-14 rounded-lg object-cover"
-            />
-          ) : (
-            <div
-              className="w-14 h-14 rounded-lg flex items-center justify-center"
-              style={{ background: "var(--glass-bg)" }}
+      <div className="flex items-center gap-3 sm:gap-4">
+        {/* Thumbnail */}
+        {analysis.metadata?.thumbnailUrl ? (
+          <img
+            src={analysis.metadata.thumbnailUrl}
+            alt=""
+            className="w-12 h-12 sm:w-14 sm:h-14 rounded-lg object-cover flex-shrink-0"
+          />
+        ) : (
+          <div
+            className="w-12 h-12 sm:w-14 sm:h-14 rounded-lg flex items-center justify-center flex-shrink-0"
+            style={{ background: "var(--glass-bg)" }}
+          >
+            <span
+              className="text-xs font-mono"
+              style={{ color: "var(--text-muted)" }}
             >
-              <span
-                className="text-xs font-mono"
-                style={{ color: "var(--text-muted)" }}
-              >
-                #{extractVideoId(analysis.video_url)}
-              </span>
-            </div>
-          )}
-
-          <div>
-            <p className="text-white font-medium mb-1">
-              {analysis.metadata?.author
-                ? `@${analysis.metadata.author}`
-                : `Video #${extractVideoId(analysis.video_url)}`}
-            </p>
-            <p className="text-[var(--text-tertiary)] text-xs">
-              {formatRelativeDate(analysis.created_at)}
-            </p>
+              #{extractVideoId(analysis.video_url)}
+            </span>
           </div>
+        )}
+
+        {/* Info */}
+        <div className="flex-1 min-w-0">
+          <p className="text-white font-medium text-sm sm:text-base truncate">
+            {analysis.metadata?.author
+              ? `@${analysis.metadata.author}`
+              : `Video #${extractVideoId(analysis.video_url)}`}
+          </p>
+          <p className="text-[var(--text-tertiary)] text-xs">
+            {formatRelativeDate(analysis.created_at)}
+          </p>
         </div>
 
-        <div className="flex items-center gap-3">
-          {/* Mini Breakdown */}
-          <div className="hidden md:flex gap-2">
-            <MiniStat label="H" value={analysis.hook_score || 0} />
-            <MiniStat label="T" value={analysis.trend_score || 0} />
-            <MiniStat label="A" value={analysis.audio_score || 0} />
-          </div>
+        {/* Score Badge - Always visible */}
+        <div
+          className="px-3 py-1.5 sm:px-4 sm:py-2 rounded-lg font-mono text-base sm:text-lg font-bold flex-shrink-0"
+          style={{
+            background: getScoreBg(score),
+            color: getScoreColor(score),
+          }}
+        >
+          {score}
+        </div>
 
-          {/* Score Badge */}
-          <div
-            className="px-4 py-2 rounded-lg font-mono text-lg font-bold"
-            style={{
-              background: getScoreBg(score),
-              color: getScoreColor(score),
-            }}
+        {/* Actions - Hidden on mobile */}
+        <div className="hidden sm:flex items-center gap-1 flex-shrink-0">
+          <a
+            href={analysis.video_url}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="btn-icon"
+            onClick={(e) => e.stopPropagation()}
           >
-            {score}
-          </div>
-
-          {/* Actions */}
-          <div className="flex items-center gap-1">
-            <a
-              href={analysis.video_url}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="btn-icon"
-              onClick={(e) => e.stopPropagation()}
-            >
-              <ExternalLink className="w-4 h-4" />
-            </a>
-            <button
-              onClick={(e) => {
-                e.preventDefault();
-                e.stopPropagation();
-                handleDelete();
-              }}
-              disabled={deleteMutation.isPending}
-              className="btn-icon text-[var(--text-muted)] hover:text-[var(--color-danger)]"
-            >
-              {deleteMutation.isPending ? (
-                <Loader2 className="w-4 h-4 animate-spin" />
-              ) : (
-                <Trash2 className="w-4 h-4" />
-              )}
-            </button>
-          </div>
+            <ExternalLink className="w-4 h-4" />
+          </a>
+          <button
+            onClick={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              handleDelete();
+            }}
+            disabled={deleteMutation.isPending}
+            className="btn-icon text-[var(--text-muted)] hover:text-[var(--color-danger)]"
+          >
+            {deleteMutation.isPending ? (
+              <Loader2 className="w-4 h-4 animate-spin" />
+            ) : (
+              <Trash2 className="w-4 h-4" />
+            )}
+          </button>
         </div>
       </div>
     </Link>

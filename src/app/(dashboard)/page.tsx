@@ -41,6 +41,86 @@ export default function DashboardPage() {
 
   const user = userData?.user;
   const isLoading = userLoading || analysesLoading;
+  const isNewUser = totalAnalyses < 3;
+
+  // Show welcome state for brand new users
+  if (!isLoading && totalAnalyses === 0) {
+    return (
+      <div className="animate-fade-in">
+        <header className="page-header">
+          <div>
+            <h1 className="page-title">Welcome to Virtuna! 🎉</h1>
+            <p className="text-[var(--text-tertiary)] text-sm mt-1">
+              Let&apos;s predict your first viral hit
+            </p>
+          </div>
+        </header>
+
+        <div className="max-w-2xl mx-auto">
+          {/* Hero CTA */}
+          <GlassPanel variant="strong" className="p-8 text-center mb-6">
+            <div className="w-20 h-20 rounded-2xl bg-gradient-to-br from-[#7C3AED] to-[#FF5757] flex items-center justify-center mx-auto mb-6">
+              <Radar className="w-10 h-10 text-white" />
+            </div>
+            <h2 className="text-2xl font-bold text-white mb-3">
+              Ready to Go Viral?
+            </h2>
+            <p className="text-[var(--text-secondary)] mb-6 max-w-md mx-auto">
+              Our AI analyzes your TikTok videos and predicts their viral potential.
+              Get actionable insights to boost your content performance.
+            </p>
+            <Link href="/analyze" className="btn btn-primary btn-lg">
+              <Sparkles className="w-5 h-5" />
+              Analyze Your First Video
+            </Link>
+          </GlassPanel>
+
+          {/* What You Get */}
+          <GlassPanel className="p-6">
+            <h3 className="text-white font-semibold mb-4">What You&apos;ll Discover</h3>
+            <div className="grid grid-cols-2 gap-4">
+              <div className="flex items-start gap-3">
+                <div className="w-10 h-10 rounded-xl bg-[#7C3AED]/20 flex items-center justify-center flex-shrink-0">
+                  <Zap className="w-5 h-5 text-[#7C3AED]" />
+                </div>
+                <div>
+                  <span className="text-white text-sm font-medium block">Viral Score</span>
+                  <span className="text-[var(--text-muted)] text-xs">0-100 prediction</span>
+                </div>
+              </div>
+              <div className="flex items-start gap-3">
+                <div className="w-10 h-10 rounded-xl bg-[#FF5757]/20 flex items-center justify-center flex-shrink-0">
+                  <TrendingUp className="w-5 h-5 text-[#FF5757]" />
+                </div>
+                <div>
+                  <span className="text-white text-sm font-medium block">Trend Analysis</span>
+                  <span className="text-[var(--text-muted)] text-xs">Current relevance</span>
+                </div>
+              </div>
+              <div className="flex items-start gap-3">
+                <div className="w-10 h-10 rounded-xl bg-green-500/20 flex items-center justify-center flex-shrink-0">
+                  <Activity className="w-5 h-5 text-green-500" />
+                </div>
+                <div>
+                  <span className="text-white text-sm font-medium block">Hook Strength</span>
+                  <span className="text-[var(--text-muted)] text-xs">First 3 seconds</span>
+                </div>
+              </div>
+              <div className="flex items-start gap-3">
+                <div className="w-10 h-10 rounded-xl bg-cyan-500/20 flex items-center justify-center flex-shrink-0">
+                  <Sparkles className="w-5 h-5 text-cyan-500" />
+                </div>
+                <div>
+                  <span className="text-white text-sm font-medium block">AI Suggestions</span>
+                  <span className="text-[var(--text-muted)] text-xs">Improve your content</span>
+                </div>
+              </div>
+            </div>
+          </GlassPanel>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="animate-fade-in">
@@ -138,20 +218,43 @@ export default function DashboardPage() {
           </GlassPanel>
         </div>
 
-        <div className="col-span-1 md:col-span-3 lg:col-span-3">
-          <GlassPanel className="p-4 md:p-5 h-full">
-            <div className="flex items-center justify-between mb-3">
-              <span className="flex items-center gap-2 text-xs md:text-[13px] text-white/60">
-                <Zap className="w-4 h-4 text-[#7C3AED]" />
-                Viral Hits (80+)
-              </span>
-            </div>
-            <div className="metric-value metric-value--accent mb-2">
-              {isLoading ? <Loader2 className="w-6 h-6 animate-spin" /> : viralCount}
-            </div>
-            <MiniSparkline data={sparklineData3} color="#7C3AED" height={35} />
-          </GlassPanel>
-        </div>
+        {/* Only show Viral Hits card for users with 3+ analyses */}
+        {!isNewUser && (
+          <div className="col-span-1 md:col-span-3 lg:col-span-3">
+            <GlassPanel className="p-4 md:p-5 h-full">
+              <div className="flex items-center justify-between mb-3">
+                <span className="flex items-center gap-2 text-xs md:text-[13px] text-white/60">
+                  <Zap className="w-4 h-4 text-[#7C3AED]" />
+                  Viral Hits (80+)
+                </span>
+              </div>
+              <div className="metric-value metric-value--accent mb-2">
+                {isLoading ? <Loader2 className="w-6 h-6 animate-spin" /> : viralCount}
+              </div>
+              <MiniSparkline data={sparklineData3} color="#7C3AED" height={35} />
+            </GlassPanel>
+          </div>
+        )}
+
+        {/* Show encouraging tip for new users instead */}
+        {isNewUser && (
+          <div className="col-span-1 md:col-span-3 lg:col-span-3">
+            <GlassPanel className="p-4 md:p-5 h-full">
+              <div className="flex items-center justify-between mb-3">
+                <span className="flex items-center gap-2 text-xs md:text-[13px] text-white/60">
+                  <Sparkles className="w-4 h-4 text-[#7C3AED]" />
+                  Pro Tip
+                </span>
+              </div>
+              <p className="text-white text-sm font-medium mb-1">
+                Keep analyzing! 🚀
+              </p>
+              <p className="text-white/40 text-xs">
+                Analyze 3+ videos to unlock viral tracking stats
+              </p>
+            </GlassPanel>
+          </div>
+        )}
 
         <div className="col-span-1 md:col-span-3 lg:col-span-3">
           <GlassPanel className="p-4 md:p-5 h-full">

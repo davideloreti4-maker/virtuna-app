@@ -125,6 +125,12 @@ export default function AnalyzePage() {
               />
             </div>
 
+            {/* URL Format Hints */}
+            <div className="text-[var(--text-muted)] text-xs mb-4">
+              <span className="text-[var(--text-tertiary)]">Accepted formats:</span>{" "}
+              tiktok.com/@user/video/... or vm.tiktok.com/...
+            </div>
+
             {error && (
               <div className="flex items-center gap-2 text-[var(--color-danger)] text-sm mb-4">
                 <AlertCircle className="w-4 h-4" />
@@ -132,11 +138,12 @@ export default function AnalyzePage() {
               </div>
             )}
 
-            <button
-              className="btn btn-primary w-full"
-              onClick={handleAnalyze}
-              disabled={loading}
-            >
+            <div className="flex gap-3">
+              <button
+                className="btn btn-primary flex-1"
+                onClick={handleAnalyze}
+                disabled={loading}
+              >
               {loading ? (
                 <>
                   <div className="w-5 h-5 border-2 border-black/30 border-t-black rounded-full animate-spin" />
@@ -148,7 +155,18 @@ export default function AnalyzePage() {
                   Analyze Video
                 </>
               )}
-            </button>
+              </button>
+              {!url && !loading && (
+                <button
+                  className="btn btn-secondary"
+                  onClick={() => setUrl("https://www.tiktok.com/@charlidamelio/video/7316457587244622122")}
+                  title="Try with a sample video"
+                >
+                  <Sparkles className="w-4 h-4" />
+                  Try Sample
+                </button>
+              )}
+            </div>
           </div>
 
           {/* What We Analyze */}
@@ -255,7 +273,7 @@ export default function AnalyzePage() {
           )}
 
           {/* Grid Layout */}
-          <div className="grid grid-cols-2 gap-4 mb-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
             {/* Score Breakdown */}
             <div className="glass-panel p-5">
               <h3 className="text-[var(--text-secondary)] text-sm font-medium uppercase tracking-wider mb-5">
@@ -330,11 +348,11 @@ export default function AnalyzePage() {
           </div>
 
           {/* Actions */}
-          <div className="flex gap-4">
-            <button className="btn btn-secondary flex-1" onClick={handleReset}>
+          <div className="flex flex-col sm:flex-row gap-3 sm:gap-4">
+            <button className="btn btn-secondary flex-1 py-3" onClick={handleReset}>
               Analyze Another
             </button>
-            <Link href={`/library/${result.id}`} className="btn btn-primary flex-1">
+            <Link href={`/library/${result.id}`} className="btn btn-primary flex-1 py-3">
               <Zap className="w-4 h-4" />
               View Details
             </Link>

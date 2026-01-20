@@ -98,43 +98,23 @@ export default function QuickAnalyzePage() {
   };
 
   return (
-    <div style={{ animation: "fadeIn 0.3s ease-out" }}>
+    <div className="animate-fade-in">
       {/* Header */}
-      <header style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "32px" }}>
-        <div className="flex items-center gap-4">
-          <Link
-            href="/"
-            style={{
-              width: "40px",
-              height: "40px",
-              borderRadius: "10px",
-              background: "rgba(255,255,255,0.06)",
-              border: "1px solid rgba(255,255,255,0.1)",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              color: "rgba(255,255,255,0.6)",
-            }}
-          >
+      <header className="page-header">
+        <div className="flex items-center gap-3 sm:gap-4">
+          <Link href="/" className="btn-icon flex-shrink-0">
             <ArrowLeft className="w-5 h-5" />
           </Link>
           <div className="flex items-center gap-3">
             <div
-              style={{
-                width: "48px",
-                height: "48px",
-                borderRadius: "14px",
-                background: "linear-gradient(135deg, #7C3AED 0%, #3B82F6 100%)",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-              }}
+              className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl sm:rounded-[14px] flex items-center justify-center flex-shrink-0"
+              style={{ background: "linear-gradient(135deg, #7C3AED 0%, #3B82F6 100%)" }}
             >
-              <Sparkles className="w-6 h-6" style={{ color: "#fff" }} />
+              <Sparkles className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
             </div>
-            <div>
-              <h1 style={{ fontSize: "28px", fontWeight: 600, color: "#fff", marginBottom: "4px" }}>Quick Analyze</h1>
-              <p style={{ color: "rgba(255,255,255,0.45)", fontSize: "14px" }}>
+            <div className="min-w-0">
+              <h1 className="page-title truncate">Quick Analyze</h1>
+              <p className="text-[var(--text-tertiary)] text-xs sm:text-sm mt-1 truncate">
                 Discover trends and strategies for any niche
               </p>
             </div>
@@ -291,37 +271,29 @@ export default function QuickAnalyzePage() {
       ) : (
         <div className="max-w-5xl">
           {/* Results Header */}
-          <div className="flex items-center justify-between mb-6">
-            <div>
-              <h2 style={{ color: "#fff", fontWeight: 600, fontSize: "20px" }}>
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
+            <div className="min-w-0">
+              <h2 className="text-white font-semibold text-lg sm:text-xl truncate">
                 Analysis: {result.niche}
                 {result.subNiche && (
-                  <span style={{ color: "rgba(255,255,255,0.5)", fontWeight: 400 }}> / {result.subNiche}</span>
+                  <span className="text-white/50 font-normal"> / {result.subNiche}</span>
                 )}
               </h2>
-              <p style={{ color: "rgba(255,255,255,0.5)", fontSize: "14px" }}>
+              <p className="text-white/50 text-sm">
                 Tailored strategies based on current TikTok trends
               </p>
             </div>
             <button
               onClick={handleReset}
-              style={{
-                padding: "10px 16px",
-                borderRadius: "10px",
-                background: "rgba(255,255,255,0.05)",
-                border: "1px solid rgba(255,255,255,0.1)",
-                color: "rgba(255,255,255,0.7)",
-                fontSize: "14px",
-                cursor: "pointer",
-              }}
+              className="btn btn-secondary flex-shrink-0 w-full sm:w-auto"
             >
               Analyze Another
             </button>
           </div>
 
-          <div className="grid grid-cols-12 gap-5">
+          <div className="grid grid-cols-1 md:grid-cols-12 gap-4 md:gap-5">
             {/* Key Insights */}
-            <div className="col-span-12">
+            <div className="md:col-span-12">
               <GlassPanel variant="strong" style={{ padding: "20px" }}>
                 <div className="flex items-center gap-3 mb-4">
                   <div
@@ -358,7 +330,7 @@ export default function QuickAnalyzePage() {
             </div>
 
             {/* Trending Formats */}
-            <div className="col-span-12 md:col-span-6">
+            <div className="md:col-span-6">
               <GlassPanel style={{ padding: "20px", height: "100%" }}>
                 <div className="flex items-center gap-3 mb-4">
                   <div
@@ -388,7 +360,7 @@ export default function QuickAnalyzePage() {
             </div>
 
             {/* Winning Formulas */}
-            <div className="col-span-12 md:col-span-6">
+            <div className="md:col-span-6">
               <GlassPanel style={{ padding: "20px", height: "100%" }}>
                 <div className="flex items-center gap-3 mb-4">
                   <div
@@ -418,7 +390,7 @@ export default function QuickAnalyzePage() {
             </div>
 
             {/* Content Ideas */}
-            <div className="col-span-12">
+            <div className="md:col-span-12">
               <GlassPanel style={{ padding: "20px" }}>
                 <div className="flex items-center gap-3 mb-4">
                   <div
@@ -492,7 +464,7 @@ export default function QuickAnalyzePage() {
             </div>
 
             {/* Best Posting Times */}
-            <div className="col-span-12 md:col-span-6 lg:col-span-4">
+            <div className="md:col-span-6 lg:col-span-4">
               <GlassPanel style={{ padding: "20px", height: "100%" }}>
                 <div className="flex items-center gap-3 mb-4">
                   <div
@@ -535,7 +507,7 @@ export default function QuickAnalyzePage() {
             </div>
 
             {/* Trending Sound Types */}
-            <div className="col-span-12 md:col-span-6 lg:col-span-4">
+            <div className="md:col-span-6 lg:col-span-4">
               <GlassPanel style={{ padding: "20px", height: "100%" }}>
                 <div className="flex items-center gap-3 mb-4">
                   <div
@@ -575,7 +547,7 @@ export default function QuickAnalyzePage() {
             </div>
 
             {/* Audience Profile */}
-            <div className="col-span-12 lg:col-span-4">
+            <div className="lg:col-span-4">
               <GlassPanel style={{ padding: "20px", height: "100%" }}>
                 <div className="flex items-center gap-3 mb-4">
                   <div
