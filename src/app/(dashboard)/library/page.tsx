@@ -67,7 +67,7 @@ export default function LibraryPage() {
       </header>
 
       {/* Stats Summary */}
-      <div className="grid grid-cols-3 gap-4 mb-6">
+      <div className="grid grid-cols-2 md:grid-cols-3 gap-3 md:gap-4 mb-6">
         <div className="glass-panel metric-card">
           <div className="metric-card-title mb-2">
             <Activity className="w-4 h-4" />
