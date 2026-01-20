@@ -4,7 +4,8 @@ import type { Analysis } from './database'
  * Video metadata extracted from TikTok
  */
 export interface VideoMetadata {
-  author: string
+  author: string | null
+  authorNickname?: string | null
   authorAvatar: string
   description: string
   duration: number // seconds
@@ -15,7 +16,7 @@ export interface VideoMetadata {
   viewCount: number
   hashtags: string[]
   soundName: string
-  soundAuthor: string
+  soundAuthor: string | null
   soundPlayCount?: number
   createTime?: string
 }

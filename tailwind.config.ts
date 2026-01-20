@@ -25,41 +25,59 @@ const config: Config = {
     },
     extend: {
       colors: {
-        // Core backgrounds - Deep navy/black (Nebulix + Palantir inspired)
+        // Core backgrounds - Deep navy/black
         background: {
           DEFAULT: "#02010A",
           deep: "#000000",
           primary: "#0A0A0F",
-          elevated: "#0F0F16",
+          elevated: "#16162A",
           card: "#12121C",
           hover: "#1A1A26",
           active: "#24243A",
         },
-        // Virtuna Cyan accent (primary brand)
+        // Primary Brand - Electric Violet (AI/Intelligence)
         virtuna: {
-          DEFAULT: "#00E5CC",
-          50: "#E0FFF9",
-          100: "#B3FFF0",
-          200: "#80FFE5",
-          300: "#4DFFDA",
-          400: "#1AFFD0",
-          500: "#00E5CC",
-          600: "#00D4BC",
-          700: "#00BCA8",
-          800: "#009A8A",
-          900: "#007A6E",
-          glow: "rgba(0, 229, 204, 0.15)",
-          muted: "rgba(0, 229, 204, 0.08)",
-          glass: "rgba(0, 229, 204, 0.12)",
-          border: "rgba(0, 229, 204, 0.30)",
+          DEFAULT: "#7C3AED",
+          50: "#F5F3FF",
+          100: "#EDE9FE",
+          200: "#DDD6FE",
+          300: "#C4B5FD",
+          400: "#A78BFA",
+          500: "#8B5CF6",
+          600: "#7C3AED",
+          700: "#6D28D9",
+          800: "#5B21B6",
+          900: "#4C1D95",
+          glow: "rgba(124, 58, 237, 0.20)",
+          muted: "rgba(124, 58, 237, 0.08)",
+          glass: "rgba(124, 58, 237, 0.12)",
+          border: "rgba(124, 58, 237, 0.30)",
         },
-        // Secondary accent (purple for buttons like Nebulix)
+        // Secondary Accent - Hot Coral (Viral/Energy)
+        coral: {
+          DEFAULT: "#FF5757",
+          50: "#FFF5F5",
+          100: "#FFE5E5",
+          200: "#FFCCCC",
+          300: "#FFA3A3",
+          400: "#FF7070",
+          500: "#FF5757",
+          600: "#E04545",
+          700: "#C23636",
+          800: "#A32929",
+          900: "#7A1F1F",
+          glow: "rgba(255, 87, 87, 0.20)",
+          muted: "rgba(255, 87, 87, 0.08)",
+          glass: "rgba(255, 87, 87, 0.12)",
+          border: "rgba(255, 87, 87, 0.30)",
+        },
+        // Legacy alias for gradual migration
         accent: {
-          DEFAULT: "#8B5CF6",
-          hover: "#A78BFA",
-          pressed: "#7C3AED",
-          glow: "rgba(139, 92, 246, 0.20)",
-          muted: "rgba(139, 92, 246, 0.10)",
+          DEFAULT: "#7C3AED",
+          hover: "#8B5CF6",
+          pressed: "#6D28D9",
+          glow: "rgba(124, 58, 237, 0.20)",
+          muted: "rgba(124, 58, 237, 0.10)",
         },
         // Status colors
         success: {
@@ -109,10 +127,13 @@ const config: Config = {
         glass: "0 8px 32px rgba(0, 0, 0, 0.35)",
         "glass-lg": "0 16px 48px rgba(0, 0, 0, 0.45)",
         "glass-xl": "0 24px 64px rgba(0, 0, 0, 0.55)",
-        // Glow effects
-        "virtuna-glow": "0 0 20px rgba(0, 229, 204, 0.20), 0 0 40px rgba(0, 229, 204, 0.10)",
-        "virtuna-glow-lg": "0 0 30px rgba(0, 229, 204, 0.30), 0 0 60px rgba(0, 229, 204, 0.15)",
-        "accent-glow": "0 0 20px rgba(139, 92, 246, 0.25)",
+        // Brand glow effects - Violet
+        "virtuna-glow": "0 0 20px rgba(124, 58, 237, 0.25), 0 0 40px rgba(124, 58, 237, 0.10)",
+        "virtuna-glow-lg": "0 0 30px rgba(124, 58, 237, 0.35), 0 0 60px rgba(124, 58, 237, 0.15)",
+        "accent-glow": "0 0 20px rgba(124, 58, 237, 0.25)",
+        // Coral glow effects
+        "coral-glow": "0 0 20px rgba(255, 87, 87, 0.25), 0 0 40px rgba(255, 87, 87, 0.10)",
+        "coral-glow-lg": "0 0 30px rgba(255, 87, 87, 0.35), 0 0 60px rgba(255, 87, 87, 0.15)",
         // Inset for liquid effect
         "glass-inset": "inset 0 1px 1px rgba(255, 255, 255, 0.08)",
         "glass-inset-lg": "inset 0 2px 4px rgba(255, 255, 255, 0.12)",
@@ -122,11 +143,14 @@ const config: Config = {
         "glass-gradient": "linear-gradient(135deg, rgba(255, 255, 255, 0.10) 0%, rgba(255, 255, 255, 0.02) 100%)",
         "glass-shine": "linear-gradient(180deg, rgba(255, 255, 255, 0.12) 0%, transparent 40%)",
         "glass-edge": "linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.08), transparent)",
-        // Accent gradients
-        "virtuna-gradient": "linear-gradient(135deg, #00E5CC 0%, #00BCA8 100%)",
-        "accent-gradient": "linear-gradient(135deg, #8B5CF6 0%, #A78BFA 100%)",
+        // Brand gradients - Violet to Coral
+        "virtuna-gradient": "linear-gradient(135deg, #7C3AED 0%, #6D28D9 100%)",
+        "brand-gradient": "linear-gradient(135deg, #7C3AED 0%, #FF5757 100%)",
+        "brand-gradient-reverse": "linear-gradient(135deg, #FF5757 0%, #7C3AED 100%)",
+        "accent-gradient": "linear-gradient(135deg, #7C3AED 0%, #8B5CF6 100%)",
+        "coral-gradient": "linear-gradient(135deg, #FF5757 0%, #FF7070 100%)",
         // Background textures
-        "navy-glow": "radial-gradient(ellipse at top, rgba(0, 229, 204, 0.05) 0%, transparent 60%)",
+        "navy-glow": "radial-gradient(ellipse at top, rgba(124, 58, 237, 0.08) 0%, transparent 60%)",
         "grid-pattern": "linear-gradient(rgba(255,255,255,0.02) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.02) 1px, transparent 1px)",
       },
       backgroundSize: {
@@ -139,8 +163,8 @@ const config: Config = {
           "50%": { transform: "translateY(-2px) scale(1.005)", opacity: "0.95" },
         },
         "glow-pulse": {
-          "0%, 100%": { boxShadow: "0 0 20px rgba(0, 229, 204, 0.15)" },
-          "50%": { boxShadow: "0 0 30px rgba(0, 229, 204, 0.30)" },
+          "0%, 100%": { boxShadow: "0 0 20px rgba(124, 58, 237, 0.20)" },
+          "50%": { boxShadow: "0 0 30px rgba(124, 58, 237, 0.35)" },
         },
         shimmer: {
           "0%": { backgroundPosition: "-200% 0" },

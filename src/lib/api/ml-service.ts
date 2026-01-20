@@ -1,4 +1,4 @@
-import type { VideoMetadata, AISuggestion } from '@/types/analysis'
+import type { AISuggestion } from '@/types/analysis'
 
 /**
  * ML Service API client

@@ -194,7 +194,9 @@ export default function AnalysisDetailPage({ params }: PageProps) {
                     />
                   )}
                   <span className="text-white font-semibold text-lg">
-                    @{analysis.metadata.author}
+                    {analysis.metadata.author && analysis.metadata.author !== 'unknown'
+                      ? `@${analysis.metadata.author}`
+                      : `Video #${analysis.video_id?.slice(-8) || 'Unknown'}`}
                   </span>
                 </div>
                 <p className="text-[var(--text-secondary)] text-sm mb-4 line-clamp-3">

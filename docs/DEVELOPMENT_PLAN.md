@@ -1538,7 +1538,187 @@ vercel --prod             # Production deploy
 
 ---
 
+---
+
+## Phase 5: UX Audit Fixes (Post-MVP)
+
+> Based on hands-on UX audit conducted 2026-01-20. Full report: `/docs/UX_AUDIT_REPORT.md`
+
+### 5.1 🔴 Critical Bugs (P0 - Blockers)
+
+#### Fix Broken Pages (Server/Client Component Errors)
+3 pages crash when visited due to missing `"use client"` directive:
+- [ ] `src/app/(dashboard)/trends/page.tsx` - Add `"use client"` at top
+- [ ] `src/app/(dashboard)/analytics/page.tsx` - Add `"use client"` at top
+- [ ] `src/app/(dashboard)/help/page.tsx` - Add `"use client"` at top
+
+**Error Message**: `Attempted to call X from the server but X is on the client`
+
+#### Fix Text Concatenation Bug
+- [ ] Analyze page: "Hook StrengthFirst 2-3 seconds..." → Should be "Hook Strength" as title, "First 2-3 seconds..." as description
+- [ ] Fix CSS/layout in score breakdown component
+
+#### Fix TikTok Metadata Fetching
+- [ ] All analyzed videos show "@unknown" author, 0 likes, 0 views
+- [ ] Debug `src/lib/api/tiktok.ts` - scraper returning empty data
+- [ ] Add error handling when metadata fetch fails (show warning, not silent failure)
+
+---
+
+### 5.2 🟠 Quick Wins (P1 - High Impact, Low Effort)
+
+#### Add "Try Example" Button
+- [ ] Add button on Analyze page: "Try with example video"
+- [ ] Pre-fill input with known working TikTok URL
+- [ ] Reduces time-to-value from "need own URL" to "one click"
+
+#### Add Score Explainability
+- [ ] Add info icon (?) next to each score
+- [ ] On hover/click: Show tooltip explaining methodology
+- [ ] Example: "Hook Score: Measures first 3 seconds impact. Based on: visual hooks, text overlay, pattern interrupt"
+
+#### Improve Error States
+- [ ] Red border on input when invalid URL
+- [ ] Larger error text (currently small gray)
+- [ ] Specific error: "TikTok URL not found" vs "Invalid format"
+
+#### Add Loading Skeletons
+- [ ] Dashboard metrics skeleton
+- [ ] Library list skeleton
+- [ ] Analysis results skeleton
+
+#### Fix Dashboard "0%" Display
+- [ ] "Success Rate: 0%" is alarming when no analyses exist
+- [ ] Reframe: "Viral Hits: None yet" or hide metric when 0
+- [ ] Add encouraging copy for empty state
+
+---
+
+### 5.3 🟠 Medium Priority (P1 - Important Features)
+
+#### Dashboard Improvements
+- [ ] Add dominant CTA: "Analyze Your Next Video" as hero element
+- [ ] Add "Since your last visit" section for returning users
+- [ ] Move Quick Actions to more prominent position
+- [ ] Hide/label demo data in charts (currently shows fake Jan-Jun data)
+
+#### Library Improvements
+- [ ] Add video thumbnails to list items
+- [ ] Add sorting: By date, by score (asc/desc)
+- [ ] Add confirmation dialog before delete
+- [ ] Expand H/T/A mini scores on hover with labels
+
+#### Analysis Results Improvements
+- [ ] Add circular gauge or progress bar for main score
+- [ ] Color code scores: Red (<50), Yellow (50-70), Green (>70)
+- [ ] Add percentile comparison: "Better than 72% of analyzed videos"
+- [ ] Show video thumbnail after analysis
+
+#### Settings Page
+- [ ] Already works, but add:
+- [ ] Usage progress bar visualization
+- [ ] "Upgrade" CTA when approaching limit
+- [ ] Email preferences section
+
+---
+
+### 5.4 🟡 Future Enhancements (P2 - Nice to Have)
+
+#### Personalized AI Suggestions
+- [ ] Replace generic suggestions with video-specific ones
+- [ ] Example: "Add trending sound: [specific sound name]" instead of "Use trending audio"
+- [ ] Reference actual hashtags missing, not just "optimize hashtags"
+
+#### Comparison Mode
+- [ ] Add checkbox selection in Library
+- [ ] "Compare" button to view 2-3 analyses side-by-side
+- [ ] Highlight differences in scores
+
+#### Trend/Benchmark Context
+- [ ] "66 is above average for dance videos"
+- [ ] Add niche-specific benchmarks
+- [ ] Show confidence interval
+
+#### Empty State Improvements
+- [ ] Dashboard: Show onboarding when no analyses
+- [ ] Library: "No videos analyzed yet. Start here →"
+- [ ] Personalized greeting for first-time users
+
+#### Accessibility Fixes
+- [ ] Check contrast ratios on dark theme
+- [ ] Ensure focus states for keyboard navigation
+- [ ] Add alt text to all icons/images
+
+---
+
+### 5.5 Confusion Test Failures (Reference)
+
+All 5 confusion tests failed during audit:
+
+| Test | Result | Root Cause |
+|------|--------|------------|
+| "I don't understand this metric" | ❌ No tooltips, no explainability | Missing help UI |
+| "I don't know what to click next" | ❌ No dominant CTA | Too many equal-weight actions |
+| "I doubt the score" | ❌ No methodology disclosure | No "How we calculate" page |
+| "I have no data yet" | ⚠️ Shows confusing empty state | No onboarding flow |
+| "I want a result faster" | ❌ Must have own URL ready | No demo/example path |
+
+---
+
+### 5.6 UX Audit Acceptance Criteria (Top 5)
+
+#### 1. "Try Example" Analysis Flow
+```gherkin
+GIVEN I am a new user on /analyze
+WHEN I click "Try with example"
+THEN a TikTok URL is pre-filled
+AND I can click Analyze immediately
+AND I see results within 10 seconds
+```
+
+#### 2. Score Explainability
+```gherkin
+GIVEN I see a score (e.g., "Hook: 88")
+WHEN I hover over the (?) icon
+THEN a tooltip appears explaining:
+  - What this metric measures
+  - What factors affect it
+  - What a "good" score is
+```
+
+#### 3. Broken Pages Fixed
+```gherkin
+GIVEN I click any nav item (Dashboard, Analyze, Library, Trends, Analytics, Settings, Help)
+WHEN the page loads
+THEN no error is displayed
+AND the page renders correctly
+```
+
+#### 4. Library Item Identification
+```gherkin
+GIVEN I have 5+ analyses in Library
+WHEN I view the list
+THEN each item shows:
+  - Video thumbnail (or placeholder)
+  - Creator username (not "@unknown")
+  - Analysis date
+AND I can visually distinguish each item
+```
+
+#### 5. Dashboard Empty State
+```gherkin
+GIVEN I am a new user with 0 analyses
+WHEN I visit Dashboard
+THEN I see an encouraging empty state
+AND a clear CTA: "Analyze Your First Video"
+AND a link: "Or try with an example"
+AND no confusing "0%" or "0 analyses" in alarming red
+```
+
+---
+
 **End of Development Plan**
 
-*Total estimated time: 9 working days (~72 hours)*
+*Total estimated time: 9 working days (~72 hours) for core MVP*
+*UX fixes add 2-3 additional days depending on priority*
 *Ready to begin implementation upon approval.*

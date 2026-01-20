@@ -51,7 +51,7 @@ export async function fetchTikTokVideo(url: string): Promise<VideoMetadata> {
   }
 
   // Use mock data in development
-  return generateMockVideoData(videoId, url)
+  return generateMockVideoData(videoId)
 }
 
 /**
@@ -92,7 +92,7 @@ async function fetchFromApify(url: string, videoId: string): Promise<VideoMetada
   } catch (error) {
     console.error('Apify fetch error:', error)
     // Fall back to mock data if Apify fails
-    return generateMockVideoData(videoId, url)
+    return generateMockVideoData(videoId)
   }
 }
 
@@ -100,8 +100,13 @@ async function fetchFromApify(url: string, videoId: string): Promise<VideoMetada
  * Transform Apify response to our VideoMetadata format
  */
 function transformApifyResponse(data: ApifyVideoData): VideoMetadata {
+  // Get author info, preferring nickname for display
+  const authorUsername = data.author?.uniqueId || data.author?.nickname || null
+  const authorDisplay = data.author?.nickname || data.author?.uniqueId || null
+
   return {
-    author: data.author?.uniqueId || 'unknown',
+    author: authorUsername,
+    authorNickname: authorDisplay,
     authorAvatar: data.author?.avatarLarger || '',
     description: data.desc || '',
     duration: data.duration || 0,
@@ -112,7 +117,7 @@ function transformApifyResponse(data: ApifyVideoData): VideoMetadata {
     viewCount: data.stats?.playCount || 0,
     hashtags: data.hashtags?.map((h) => h.name) || [],
     soundName: data.music?.title || 'Original Sound',
-    soundAuthor: data.music?.authorName || data.author?.uniqueId || 'unknown',
+    soundAuthor: data.music?.authorName || authorUsername || null,
     soundPlayCount: 0, // Not available from basic Apify scraper
     createTime: data.createTime ? new Date(data.createTime * 1000).toISOString() : undefined,
   }
@@ -121,7 +126,7 @@ function transformApifyResponse(data: ApifyVideoData): VideoMetadata {
 /**
  * Generate mock video data for development
  */
-function generateMockVideoData(videoId: string, url: string): VideoMetadata {
+function generateMockVideoData(videoId: string): VideoMetadata {
   // Generate somewhat random but deterministic data based on videoId
   const seed = videoId.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0)
   const random = (min: number, max: number) => {

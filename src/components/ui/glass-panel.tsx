@@ -8,6 +8,7 @@ interface GlassPanelProps {
   className?: string;
   style?: CSSProperties;
   hover?: boolean;
+  onClick?: () => void;
 }
 
 const variants = {
@@ -37,12 +38,14 @@ export function GlassPanel({
   className = "",
   style = {},
   hover = false,
+  onClick,
 }: GlassPanelProps) {
   const variantStyles = variants[variant];
 
   return (
     <div
       className={className}
+      onClick={onClick}
       style={{
         ...variantStyles,
         borderRadius: "16px",

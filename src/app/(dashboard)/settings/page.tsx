@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import Link from "next/link";
 import {
   ArrowLeft,
@@ -14,11 +15,173 @@ import {
   Crown,
   Mail,
   Zap,
+  Loader2,
+  X,
+  Check,
 } from "lucide-react";
+import { useAuth } from "@/lib/hooks/use-auth";
+import { useUser, useUpdateProfile } from "@/lib/hooks/use-user";
+import { toastSuccess, toastError } from "@/components/ui/use-toast";
+import type { PlanType } from "@/lib/stripe";
 
 export default function SettingsPage() {
+  const { user, signOut } = useAuth();
+  const { data: userData, isLoading: userLoading } = useUser();
+  const updateProfile = useUpdateProfile();
+
+  const [isSigningOut, setIsSigningOut] = useState(false);
+  const [showEditProfile, setShowEditProfile] = useState(false);
+  const [editName, setEditName] = useState("");
+  const [isUpgrading, setIsUpgrading] = useState(false);
+
+  const profile = userData?.user;
+  // Only use userLoading - authLoading can hang if profile doesn't exist in Supabase
+  const isLoading = userLoading;
+
+  const handleSignOut = async () => {
+    setIsSigningOut(true);
+    try {
+      await signOut();
+    } finally {
+      setIsSigningOut(false);
+    }
+  };
+
+  const handleUpgrade = async (plan: PlanType = "pro", billing: "monthly" | "yearly" = "monthly") => {
+    if (isUpgrading) return;
+
+    setIsUpgrading(true);
+    try {
+      const response = await fetch("/api/checkout", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ plan, billing }),
+      });
+
+      const data = await response.json();
+
+      if (data.url) {
+        window.location.href = data.url;
+      } else {
+        toastError("Checkout failed", data.error || "Could not start checkout. Please try again.");
+      }
+    } catch (error) {
+      console.error("Checkout error:", error);
+      toastError("Checkout failed", "Could not connect to payment provider. Please try again.");
+    } finally {
+      setIsUpgrading(false);
+    }
+  };
+
+  const handleEditProfile = () => {
+    setEditName(profile?.full_name || "");
+    setShowEditProfile(true);
+  };
+
+  const handleSaveProfile = async () => {
+    if (!editName.trim()) return;
+
+    try {
+      await updateProfile.mutateAsync({ fullName: editName.trim() });
+      setShowEditProfile(false);
+      toastSuccess("Profile updated", "Your name has been changed successfully.");
+    } catch (error) {
+      console.error("Failed to update profile:", error);
+      toastError("Update failed", "Could not update your profile. Please try again.");
+    }
+  };
+
+  // Get initials for avatar
+  const getInitials = (name: string) => {
+    return name
+      .split(" ")
+      .map((n) => n[0])
+      .join("")
+      .toUpperCase()
+      .slice(0, 2);
+  };
+
+  // Calculate usage percentage
+  const usagePercentage = profile
+    ? Math.round((profile.analyses_count / profile.analyses_limit) * 100)
+    : 0;
+
+  const remainingAnalyses = profile
+    ? profile.analyses_limit - profile.analyses_count
+    : 0;
+
+  // Plan display names
+  const planDisplayNames: Record<string, string> = {
+    free: "Free Plan",
+    pro: "Pro Plan",
+    agency: "Agency Plan",
+  };
+
+  if (isLoading) {
+    return (
+      <div className="animate-fade-in max-w-2xl flex items-center justify-center min-h-[400px]">
+        <Loader2 className="w-8 h-8 animate-spin text-[var(--accent-primary)]" />
+      </div>
+    );
+  }
+
   return (
     <div className="animate-fade-in max-w-2xl">
+      {/* Edit Profile Modal */}
+      {showEditProfile && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
+          <div className="glass-panel-strong p-6 w-full max-w-md">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-lg font-semibold text-white">Edit Profile</h3>
+              <button
+                onClick={() => setShowEditProfile(false)}
+                className="btn-icon"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <div className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-[var(--text-secondary)] mb-2">
+                  Full Name
+                </label>
+                <input
+                  type="text"
+                  value={editName}
+                  onChange={(e) => setEditName(e.target.value)}
+                  className="input w-full"
+                  placeholder="Enter your name"
+                />
+              </div>
+
+              <div className="flex gap-3 pt-2">
+                <button
+                  onClick={() => setShowEditProfile(false)}
+                  className="btn btn-secondary flex-1"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handleSaveProfile}
+                  disabled={!editName.trim() || updateProfile.isPending}
+                  className="btn btn-primary flex-1"
+                >
+                  {updateProfile.isPending ? (
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                  ) : (
+                    <>
+                      <Check className="w-4 h-4" />
+                      Save
+                    </>
+                  )}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Header */}
       <header className="page-header">
         <div className="flex items-center gap-4">
@@ -45,16 +208,20 @@ export default function SettingsPage() {
                   "linear-gradient(135deg, var(--accent-cyan), var(--accent-purple))",
               }}
             >
-              <span className="text-2xl font-bold text-white">D</span>
+              <span className="text-2xl font-bold text-white">
+                {profile?.full_name ? getInitials(profile.full_name) : "?"}
+              </span>
             </div>
             <div className="flex-1">
-              <h2 className="text-white font-semibold text-lg">Davide Loreti</h2>
+              <h2 className="text-white font-semibold text-lg">
+                {profile?.full_name || "Loading..."}
+              </h2>
               <p className="text-[var(--text-tertiary)] text-sm flex items-center gap-2">
                 <Mail className="w-3.5 h-3.5" />
-                davide@example.com
+                {user?.email || profile?.email || "..."}
               </p>
             </div>
-            <button className="btn-icon">
+            <button onClick={handleEditProfile} className="btn-icon">
               <ChevronRight className="w-5 h-5" />
             </button>
           </div>
@@ -80,11 +247,13 @@ export default function SettingsPage() {
               </div>
               <div>
                 <div className="flex items-center gap-2">
-                  <h3 className="text-white font-semibold">Free Plan</h3>
+                  <h3 className="text-white font-semibold">
+                    {profile?.plan ? planDisplayNames[profile.plan] : "Free Plan"}
+                  </h3>
                   <span className="badge badge-accent text-xs">Current</span>
                 </div>
                 <p className="text-[var(--text-tertiary)] text-sm">
-                  5 analyses remaining this month
+                  {remainingAnalyses} of {profile?.analyses_limit || 5} analyses remaining
                 </p>
               </div>
             </div>
@@ -93,14 +262,29 @@ export default function SettingsPage() {
           <div className="breakdown-bar mb-4">
             <div
               className="breakdown-bar-fill breakdown-bar-fill--accent"
-              style={{ width: "50%" }}
+              style={{ width: `${Math.min(usagePercentage, 100)}%` }}
             />
           </div>
 
-          <button className="btn btn-primary w-full">
-            <Sparkles className="w-4 h-4" />
-            Upgrade to Pro
-          </button>
+          {profile?.plan === "free" && (
+            <button
+              onClick={() => handleUpgrade("pro")}
+              disabled={isUpgrading}
+              className="btn btn-primary w-full"
+            >
+              {isUpgrading ? (
+                <>
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                  Redirecting to checkout...
+                </>
+              ) : (
+                <>
+                  <Sparkles className="w-4 h-4" />
+                  Upgrade to Pro
+                </>
+              )}
+            </button>
+          )}
         </div>
       </section>
 
@@ -114,6 +298,7 @@ export default function SettingsPage() {
             icon={<User className="w-5 h-5" />}
             label="Profile"
             description="Edit your personal information"
+            onClick={handleEditProfile}
           />
           <SettingsItem
             icon={<CreditCard className="w-5 h-5" />}
@@ -152,11 +337,19 @@ export default function SettingsPage() {
       {/* Sign Out */}
       <section className="mb-6">
         <button
-          className="w-full p-4 rounded-lg text-left flex items-center gap-3 transition-all hover:bg-[var(--color-danger-dim)]"
+          onClick={handleSignOut}
+          disabled={isSigningOut}
+          className="w-full p-4 rounded-lg text-left flex items-center gap-3 transition-all hover:bg-[var(--color-danger-dim)] disabled:opacity-50"
           style={{ color: "var(--color-danger)" }}
         >
-          <LogOut className="w-5 h-5" />
-          <span className="font-medium">Sign Out</span>
+          {isSigningOut ? (
+            <Loader2 className="w-5 h-5 animate-spin" />
+          ) : (
+            <LogOut className="w-5 h-5" />
+          )}
+          <span className="font-medium">
+            {isSigningOut ? "Signing out..." : "Sign Out"}
+          </span>
         </button>
       </section>
 
@@ -177,14 +370,17 @@ function SettingsItem({
   label,
   description,
   isLast = false,
+  onClick,
 }: {
   icon: React.ReactNode;
   label: string;
   description: string;
   isLast?: boolean;
+  onClick?: () => void;
 }) {
   return (
     <button
+      onClick={onClick}
       className={`w-full p-4 flex items-center justify-between transition-all hover:bg-[var(--glass-bg-hover)] ${
         !isLast ? "border-b border-[var(--glass-border)]" : ""
       }`}

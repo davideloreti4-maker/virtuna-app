@@ -13,6 +13,7 @@ import {
   Zap,
   Trash2,
   Loader2,
+  MessageSquare,
 } from "lucide-react";
 import { useAnalyses, useDeleteAnalysis } from "@/lib/hooks/use-analyses";
 import { formatRelativeDate } from "@/lib/utils/format";
@@ -67,7 +68,7 @@ export default function LibraryPage() {
       </header>
 
       {/* Stats Summary */}
-      <div className="grid grid-cols-3 gap-4 mb-6">
+      <div className="grid grid-cols-4 gap-4 mb-6">
         <div className="glass-panel metric-card">
           <div className="metric-card-title mb-2">
             <Activity className="w-4 h-4" />
@@ -89,6 +90,13 @@ export default function LibraryPage() {
           </div>
           <div className="metric-value metric-value--cyan">{avgScore}</div>
         </div>
+        <Link href="/library/hooks" className="glass-panel metric-card hover:border-[var(--accent-primary)] transition-colors">
+          <div className="metric-card-title mb-2">
+            <MessageSquare className="w-4 h-4" />
+            Saved Hooks
+          </div>
+          <div className="metric-value text-amber-400">View</div>
+        </Link>
       </div>
 
       {/* Filter Tabs */}
@@ -228,6 +236,12 @@ function AnalysisCard({ analysis }: { analysis: AnalysisWithDetails }) {
     }
   };
 
+  const openExternalLink = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    window.open(analysis.video_url, "_blank", "noopener,noreferrer");
+  };
+
   return (
     <Link
       href={`/library/${analysis.id}`}
@@ -258,7 +272,7 @@ function AnalysisCard({ analysis }: { analysis: AnalysisWithDetails }) {
 
           <div>
             <p className="text-white font-medium mb-1">
-              {analysis.metadata?.author
+              {analysis.metadata?.author && analysis.metadata.author !== 'unknown'
                 ? `@${analysis.metadata.author}`
                 : `Video #${extractVideoId(analysis.video_url)}`}
             </p>
@@ -289,15 +303,13 @@ function AnalysisCard({ analysis }: { analysis: AnalysisWithDetails }) {
 
           {/* Actions */}
           <div className="flex items-center gap-1">
-            <a
-              href={analysis.video_url}
-              target="_blank"
-              rel="noopener noreferrer"
+            <button
+              onClick={openExternalLink}
               className="btn-icon"
-              onClick={(e) => e.stopPropagation()}
+              title="Open TikTok video"
             >
               <ExternalLink className="w-4 h-4" />
-            </a>
+            </button>
             <button
               onClick={(e) => {
                 e.preventDefault();

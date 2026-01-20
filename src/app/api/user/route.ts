@@ -76,6 +76,7 @@ export async function PATCH(request: Request) {
     }
 
     const { data: profile, error } = await (supabase
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       .from('profiles') as any)
       .update({
         full_name: parsed.data.fullName,
@@ -137,9 +138,11 @@ export async function DELETE(request: Request) {
     }
 
     // Delete user's analyses first (should cascade, but being explicit)
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     await (supabase.from('analyses') as any).delete().eq('user_id', user.id)
 
     // Delete profile (should cascade from auth.users, but being explicit)
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     await (supabase.from('profiles') as any).delete().eq('id', user.id)
 
     // Delete auth user - this requires admin client

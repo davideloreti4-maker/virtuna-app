@@ -3,6 +3,12 @@ import { createClient } from '@/lib/supabase/server'
 import { fetchTikTokVideo } from '@/lib/api/tiktok'
 import { analyzeVideo } from '@/lib/api/ml-service'
 import { analyzeSchema } from '@/lib/utils/validation'
+import {
+  XP_ACTIONS,
+  calculateLevel,
+  shouldIncrementStreak,
+  getStreakReward,
+} from '@/lib/gamification'
 import type { AnalysisWithDetails } from '@/types/analysis'
 import type { Profile } from '@/types/database'
 
@@ -119,6 +125,7 @@ export async function POST(request: Request) {
     }
 
     const { data: analysis, error: insertError } = await (supabase
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       .from('analyses') as any)
       .insert(insertData)
       .select()
@@ -134,6 +141,54 @@ export async function POST(request: Request) {
 
     // Note: The analyses_count is incremented automatically by a database trigger
 
+    // Update gamification data
+    const isViral = mlResult.overallScore >= 85
+    const isFirstViral = isViral && (userProfile.total_viral_count || 0) === 0
+    const shouldIncrement = shouldIncrementStreak(userProfile.last_analysis_date || null)
+
+    // Calculate XP earned
+    let xpEarned = XP_ACTIONS.analysis_complete
+    if (isFirstViral) {
+      xpEarned += XP_ACTIONS.first_viral_score
+    } else if (isViral) {
+      xpEarned += XP_ACTIONS.viral_score
+    }
+
+    // Calculate new streak
+    const newStreak = shouldIncrement
+      ? (userProfile.streak_days || 0) + 1
+      : (userProfile.streak_days || 0)
+
+    // Add streak XP if streak is active
+    if (shouldIncrement && newStreak > 1) {
+      const streakReward = getStreakReward(newStreak)
+      xpEarned += streakReward.xp
+    }
+
+    // Calculate new total XP and level
+    const newXp = (userProfile.xp || 0) + xpEarned
+    const newLevel = calculateLevel(newXp)
+
+    // Update profile with gamification data
+    const { error: updateError } = await (supabase
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      .from('profiles') as any)
+      .update({
+        xp: newXp,
+        level: newLevel,
+        streak_days: newStreak,
+        last_analysis_date: new Date().toISOString(),
+        total_viral_count: isViral
+          ? (userProfile.total_viral_count || 0) + 1
+          : (userProfile.total_viral_count || 0),
+      })
+      .eq('id', user.id)
+
+    if (updateError) {
+      console.error('Gamification update error:', updateError)
+      // Don't fail the request, gamification is not critical
+    }
+
     // Cast to expected type and override metadata/suggestions with typed versions
     const result = {
       ...(analysis as unknown as AnalysisWithDetails),
@@ -145,6 +200,14 @@ export async function POST(request: Request) {
       analysis: result,
       processingTime,
       remaining: userProfile.analyses_limit - userProfile.analyses_count - 1,
+      gamification: {
+        xpEarned,
+        newXp,
+        newLevel,
+        streakDays: newStreak,
+        isViral,
+        isFirstViral,
+      },
     })
   } catch (error) {
     console.error('Analysis error:', error)

@@ -15,6 +15,7 @@ import {
   CheckCircle,
   AlertCircle,
   ArrowRight,
+  Upload,
 } from "lucide-react";
 import { useAnalyze } from "@/lib/hooks/use-analyses";
 import type { AnalysisWithDetails, AISuggestion } from "@/types/analysis";
@@ -42,7 +43,7 @@ export default function AnalyzePage() {
     try {
       const data = await analyzeMutation.mutateAsync(url);
       setResult(data.analysis);
-    } catch (error) {
+    } catch {
       // Error is handled by the mutation
     }
   };
@@ -183,6 +184,26 @@ export default function AnalyzePage() {
               />
             </div>
           </div>
+
+          {/* Upload Video Option */}
+          <Link
+            href="/analyze/upload"
+            className="glass-panel p-6 mt-6 flex items-center gap-4 hover:bg-white/5 transition-colors group"
+          >
+            <div
+              className="w-12 h-12 rounded-xl flex items-center justify-center"
+              style={{ background: "var(--accent-secondary-dim)" }}
+            >
+              <Upload className="w-6 h-6 text-[var(--accent-secondary)]" />
+            </div>
+            <div className="flex-1">
+              <h3 className="text-white font-semibold">Upload Your Video</h3>
+              <p className="text-[var(--text-tertiary)] text-sm">
+                Upload a video file directly for AI-powered analysis
+              </p>
+            </div>
+            <ArrowRight className="w-5 h-5 text-[var(--text-muted)] group-hover:text-white transition-colors" />
+          </Link>
         </div>
       ) : (
         <div className="max-w-3xl">
@@ -334,18 +355,16 @@ function FeatureItem({
   description: string;
 }) {
   return (
-    <div className="data-list-item">
-      <div className="data-list-item-left">
-        <div
-          className="data-list-item-icon"
-          style={{ color: "var(--accent-cyan)" }}
-        >
-          {icon}
-        </div>
-        <div>
-          <span className="data-list-item-title">{title}</span>
-          <span className="data-list-item-subtitle">{description}</span>
-        </div>
+    <div className="flex items-start gap-3 py-3 border-b border-[rgba(255,255,255,0.06)] last:border-0">
+      <div
+        className="w-9 h-9 rounded-lg flex items-center justify-center flex-shrink-0"
+        style={{ background: "rgba(124, 58, 237, 0.12)", color: "var(--accent-primary)" }}
+      >
+        {icon}
+      </div>
+      <div className="flex flex-col">
+        <span className="text-white text-sm font-medium">{title}</span>
+        <span className="text-[var(--text-muted)] text-xs mt-0.5">{description}</span>
       </div>
     </div>
   );

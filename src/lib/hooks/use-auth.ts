@@ -3,7 +3,7 @@
 import { useEffect, useState, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
-import type { User, AuthError } from '@supabase/supabase-js'
+import type { User } from '@supabase/supabase-js'
 import type { Profile } from '@/types/database'
 
 interface UseAuthReturn {

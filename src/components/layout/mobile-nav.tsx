@@ -7,12 +7,14 @@ import {
   Radar,
   Library,
   Settings,
+  Trophy,
 } from "lucide-react";
 
 const navItems = [
-  { href: "/", icon: LayoutDashboard, label: "Dashboard" },
+  { href: "/", icon: LayoutDashboard, label: "Home" },
   { href: "/analyze", icon: Radar, label: "Analyze" },
   { href: "/library", icon: Library, label: "Library" },
+  { href: "/leaderboard", icon: Trophy, label: "Ranks" },
   { href: "/settings", icon: Settings, label: "Settings" },
 ];
 

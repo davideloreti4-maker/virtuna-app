@@ -1,26 +1,31 @@
 "use client";
 
+import { useState } from "react";
 import Link from "next/link";
 import {
   Radar,
   TrendingUp,
   Zap,
   ArrowUpRight,
+  ArrowDownRight,
   Activity,
   Eye,
   ChevronRight,
   ExternalLink,
   Sparkles,
   Loader2,
+  Info,
+  Target,
 } from "lucide-react";
 import { ViralTrendChart } from "@/components/charts/viral-trend-chart";
 import { PerformanceBarChart } from "@/components/charts/performance-bar-chart";
 import { ScoreDistributionChart } from "@/components/charts/score-distribution-chart";
 import { MiniSparkline } from "@/components/charts/mini-sparkline";
 import { GlassPanel } from "@/components/ui/glass-panel";
+import { LevelProgress } from "@/components/ui/level-progress";
 import { useAnalyses } from "@/lib/hooks/use-analyses";
 import { useUser } from "@/lib/hooks/use-user";
-import { formatRelativeDate, formatNumber } from "@/lib/utils/format";
+import { formatRelativeDate } from "@/lib/utils/format";
 import type { AnalysisWithDetails } from "@/types/analysis";
 
 // Mock sparkline data - would come from aggregated stats in production
@@ -29,6 +34,7 @@ const sparklineData2 = [30, 42, 55, 48, 62, 70, 85];
 const sparklineData3 = [80, 75, 82, 78, 85, 90, 88];
 
 export default function DashboardPage() {
+  const [showScoreBreakdown, setShowScoreBreakdown] = useState(false);
   const { data: userData, isLoading: userLoading } = useUser();
   const { data: analysesData, isLoading: analysesLoading } = useAnalyses({ limit: 5 });
 
@@ -38,6 +44,25 @@ export default function DashboardPage() {
   const avgScore = analyses.length
     ? Math.round(analyses.reduce((sum, a) => sum + (a.overall_score || 0), 0) / analyses.length)
     : 0;
+
+  // Calculate average component scores for breakdown
+  const avgHookScore = analyses.length
+    ? Math.round(analyses.reduce((sum, a) => sum + (a.hook_score || 0), 0) / analyses.length)
+    : 0;
+  const avgTrendScore = analyses.length
+    ? Math.round(analyses.reduce((sum, a) => sum + (a.trend_score || 0), 0) / analyses.length)
+    : 0;
+  const avgAudioScore = analyses.length
+    ? Math.round(analyses.reduce((sum, a) => sum + (a.audio_score || 0), 0) / analyses.length)
+    : 0;
+
+  // Find weakest area
+  const scoreComponents = [
+    { name: "Hook", score: avgHookScore, tip: "Improve your first 3 seconds" },
+    { name: "Trend", score: avgTrendScore, tip: "Use more trending formats" },
+    { name: "Audio", score: avgAudioScore, tip: "Try trending sounds" },
+  ];
+  const weakestArea = scoreComponents.reduce((min, curr) => curr.score < min.score ? curr : min, scoreComponents[0]);
 
   const user = userData?.user;
   const isLoading = userLoading || analysesLoading;
@@ -53,9 +78,18 @@ export default function DashboardPage() {
           </p>
         </div>
         <div className="flex items-center gap-3">
+          {/* Level Progress - Compact */}
+          {user && (
+            <LevelProgress
+              xp={user.xp || 0}
+              streakDays={user.streak_days || 0}
+              lastAnalysisDate={user.last_analysis_date || null}
+              compact
+            />
+          )}
           {user && (
             <div style={{ display: "flex", alignItems: "center", gap: "10px", padding: "6px 12px 6px 6px", background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.08)", borderRadius: "12px" }}>
-              <div style={{ width: "32px", height: "32px", borderRadius: "8px", background: "linear-gradient(135deg, #c8ff00, #00e5cc)" }} />
+              <div style={{ width: "32px", height: "32px", borderRadius: "8px", background: "linear-gradient(135deg, #7C3AED, #FF5757)" }} />
               <span style={{ color: "#fff", fontSize: "14px", fontWeight: 500 }}>
                 {user.full_name || user.email?.split("@")[0]}
               </span>
@@ -66,41 +100,92 @@ export default function DashboardPage() {
 
       {/* Main Grid */}
       <div style={{ display: "grid", gridTemplateColumns: "repeat(12, 1fr)", gap: "20px" }}>
-        {/* Hero Score Card */}
+        {/* Hero Score Card - Enhanced with explainability */}
         <div style={{ gridColumn: "span 4" }}>
-          <GlassPanel variant="strong" style={{ padding: "24px", height: "100%" }}>
+          <GlassPanel
+            variant="strong"
+            style={{ padding: "24px", height: "100%", cursor: analyses.length > 0 ? "pointer" : "default" }}
+            onClick={() => analyses.length > 0 && setShowScoreBreakdown(!showScoreBreakdown)}
+          >
             <div className="flex items-center justify-between mb-4">
               <span style={{ color: "rgba(255,255,255,0.4)", fontSize: "11px", textTransform: "uppercase", letterSpacing: "0.05em" }}>
                 Average Viral Score
               </span>
-              <span style={{ background: "rgba(168, 85, 247, 0.2)", color: "#a855f7", padding: "4px 10px", borderRadius: "20px", fontSize: "11px", fontWeight: 500 }}>
-                All Time
-              </span>
+              <div className="flex items-center gap-2">
+                {analyses.length > 0 && (
+                  <button
+                    style={{ background: "rgba(255,255,255,0.08)", padding: "4px 8px", borderRadius: "6px", border: "none", cursor: "pointer" }}
+                    title="Click for breakdown"
+                  >
+                    <Info className="w-3.5 h-3.5" style={{ color: "rgba(255,255,255,0.5)" }} />
+                  </button>
+                )}
+                <span style={{ background: "rgba(168, 85, 247, 0.2)", color: "#a855f7", padding: "4px 10px", borderRadius: "20px", fontSize: "11px", fontWeight: 500 }}>
+                  All Time
+                </span>
+              </div>
             </div>
 
-            <div className="flex items-end gap-4 mb-4">
+            <div className="flex items-end gap-4 mb-2">
               {isLoading ? (
                 <Loader2 className="w-10 h-10 text-virtuna animate-spin" />
               ) : (
                 <>
-                  <span className="font-mono font-bold leading-none" style={{ fontSize: "60px", color: "#c8ff00", textShadow: "0 0 40px rgba(200, 255, 0, 0.4)" }}>
+                  <span className="font-mono font-bold leading-none" style={{ fontSize: "60px", color: avgScore >= 80 ? "#22c55e" : avgScore >= 60 ? "#7C3AED" : avgScore >= 40 ? "#F59E0B" : "#EF4444", textShadow: `0 0 40px ${avgScore >= 80 ? "rgba(34, 197, 94, 0.4)" : avgScore >= 60 ? "rgba(124, 58, 237, 0.4)" : avgScore >= 40 ? "rgba(245, 158, 11, 0.4)" : "rgba(239, 68, 68, 0.4)"}` }}>
                     {avgScore}
                   </span>
-                  {avgScore >= 60 && (
-                    <div className="flex items-center gap-1 mb-2" style={{ color: "#22c55e", fontSize: "14px" }}>
-                      <ArrowUpRight className="w-4 h-4" />
-                      <span className="font-semibold">Good</span>
-                    </div>
-                  )}
+                  <div className="flex items-center gap-1 mb-2" style={{ color: avgScore >= 60 ? "#22c55e" : "#F59E0B", fontSize: "14px" }}>
+                    {avgScore >= 60 ? <ArrowUpRight className="w-4 h-4" /> : <ArrowDownRight className="w-4 h-4" />}
+                    <span className="font-semibold">{avgScore >= 80 ? "Viral!" : avgScore >= 60 ? "Good" : avgScore >= 40 ? "Fair" : "Needs Work"}</span>
+                  </div>
                 </>
               )}
             </div>
 
-            <p style={{ color: "rgba(255,255,255,0.6)", fontSize: "14px", marginBottom: "16px" }}>
-              {avgScore >= 80 ? "Excellent Performance" : avgScore >= 60 ? "Good Performance" : "Room for improvement"}
+            {/* Benchmark context */}
+            <p style={{ color: "rgba(255,255,255,0.5)", fontSize: "12px", marginBottom: "12px" }}>
+              {avgScore >= 80 ? "Top 10% of creators!" : avgScore >= 60 ? "Above average. Top creators score 80+" : "Benchmark: Top creators average 78+"}
             </p>
 
-            <MiniSparkline data={sparklineData1} color="#c8ff00" height={50} />
+            {/* Score Breakdown - Collapsible */}
+            {showScoreBreakdown && analyses.length > 0 && (
+              <div style={{ marginBottom: "16px", padding: "12px", background: "rgba(255,255,255,0.04)", borderRadius: "10px" }}>
+                <p style={{ color: "rgba(255,255,255,0.6)", fontSize: "11px", textTransform: "uppercase", marginBottom: "10px" }}>
+                  Score Breakdown
+                </p>
+                <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
+                  {scoreComponents.map((comp) => (
+                    <div key={comp.name} className="flex items-center justify-between">
+                      <span style={{ color: "rgba(255,255,255,0.7)", fontSize: "13px" }}>{comp.name}</span>
+                      <div className="flex items-center gap-2">
+                        <div style={{ width: "60px", height: "6px", background: "rgba(255,255,255,0.1)", borderRadius: "3px", overflow: "hidden" }}>
+                          <div style={{ width: `${comp.score}%`, height: "100%", background: comp.score >= 80 ? "#22c55e" : comp.score >= 60 ? "#7C3AED" : comp.score >= 40 ? "#F59E0B" : "#EF4444", borderRadius: "3px" }} />
+                        </div>
+                        <span className="font-mono font-semibold" style={{ color: comp.score >= 80 ? "#22c55e" : comp.score >= 60 ? "#7C3AED" : comp.score >= 40 ? "#F59E0B" : "#EF4444", fontSize: "13px", minWidth: "28px" }}>
+                          {comp.score}
+                        </span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+                {/* Weakest area highlight */}
+                {weakestArea.score < 70 && (
+                  <div style={{ marginTop: "10px", padding: "8px", background: "rgba(245, 158, 11, 0.1)", borderRadius: "6px", borderLeft: "3px solid #F59E0B" }}>
+                    <p style={{ color: "#F59E0B", fontSize: "11px", fontWeight: 600 }}>Fix this first: {weakestArea.name}</p>
+                    <p style={{ color: "rgba(255,255,255,0.5)", fontSize: "11px" }}>{weakestArea.tip}</p>
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* Click hint */}
+            {analyses.length > 0 && !showScoreBreakdown && (
+              <p style={{ color: "rgba(255,255,255,0.35)", fontSize: "11px", marginBottom: "12px" }}>
+                Click for breakdown
+              </p>
+            )}
+
+            <MiniSparkline data={sparklineData1} color="#7C3AED" height={40} />
           </GlassPanel>
         </div>
 
@@ -127,14 +212,14 @@ export default function DashboardPage() {
           <GlassPanel style={{ padding: "20px", height: "100%" }}>
             <div className="flex items-center justify-between mb-3">
               <span style={{ display: "flex", alignItems: "center", gap: "8px", fontSize: "13px", color: "rgba(255,255,255,0.6)" }}>
-                <Activity className="w-4 h-4" style={{ color: "#00e5cc" }} />
+                <Activity className="w-4 h-4" style={{ color: "#7C3AED" }} />
                 Total Analyses
               </span>
             </div>
             <div style={{ fontSize: "30px", fontWeight: 700, fontFamily: "var(--font-jetbrains), monospace", color: "#fff", marginBottom: "8px" }}>
               {isLoading ? <Loader2 className="w-6 h-6 animate-spin" /> : totalAnalyses}
             </div>
-            <MiniSparkline data={sparklineData2} color="#00e5cc" height={35} />
+            <MiniSparkline data={sparklineData2} color="#7C3AED" height={35} />
           </GlassPanel>
         </div>
 
@@ -142,14 +227,14 @@ export default function DashboardPage() {
           <GlassPanel style={{ padding: "20px", height: "100%" }}>
             <div className="flex items-center justify-between mb-3">
               <span style={{ display: "flex", alignItems: "center", gap: "8px", fontSize: "13px", color: "rgba(255,255,255,0.6)" }}>
-                <Zap className="w-4 h-4" style={{ color: "#c8ff00" }} />
+                <Zap className="w-4 h-4" style={{ color: "#FF5757" }} />
                 Viral Hits (80+)
               </span>
             </div>
-            <div style={{ fontSize: "30px", fontWeight: 700, fontFamily: "var(--font-jetbrains), monospace", color: "#c8ff00", marginBottom: "8px" }}>
+            <div style={{ fontSize: "30px", fontWeight: 700, fontFamily: "var(--font-jetbrains), monospace", color: "#FF5757", marginBottom: "8px" }}>
               {isLoading ? <Loader2 className="w-6 h-6 animate-spin" /> : viralCount}
             </div>
-            <MiniSparkline data={sparklineData3} color="#c8ff00" height={35} />
+            <MiniSparkline data={sparklineData3} color="#FF5757" height={35} />
           </GlassPanel>
         </div>
 
@@ -161,7 +246,7 @@ export default function DashboardPage() {
                 Analyses Left
               </span>
             </div>
-            <div style={{ fontSize: "30px", fontWeight: 700, fontFamily: "var(--font-jetbrains), monospace", color: "#00e5cc", marginBottom: "4px" }}>
+            <div style={{ fontSize: "30px", fontWeight: 700, fontFamily: "var(--font-jetbrains), monospace", color: "#7C3AED", marginBottom: "4px" }}>
               {isLoading ? (
                 <Loader2 className="w-6 h-6 animate-spin" />
               ) : (
@@ -182,10 +267,26 @@ export default function DashboardPage() {
                 Success Rate
               </span>
             </div>
-            <div style={{ fontSize: "30px", fontWeight: 700, fontFamily: "var(--font-jetbrains), monospace", color: "#fff", marginBottom: "4px" }}>
-              {totalAnalyses > 0 ? Math.round((viralCount / totalAnalyses) * 100) : 0}%
-            </div>
-            <p style={{ color: "rgba(255,255,255,0.4)", fontSize: "12px" }}>Videos scoring 80+</p>
+            {/* Hide crushing 0% for new users - show encouraging message instead */}
+            {totalAnalyses < 5 ? (
+              <>
+                <div style={{ fontSize: "16px", fontWeight: 600, color: "rgba(255,255,255,0.7)", marginBottom: "4px" }}>
+                  Building baseline...
+                </div>
+                <p style={{ color: "rgba(255,255,255,0.4)", fontSize: "12px" }}>
+                  Analyze {5 - totalAnalyses} more video{5 - totalAnalyses !== 1 ? "s" : ""} to see your rate
+                </p>
+              </>
+            ) : (
+              <>
+                <div style={{ fontSize: "30px", fontWeight: 700, fontFamily: "var(--font-jetbrains), monospace", color: viralCount > 0 ? "#22c55e" : "#fff", marginBottom: "4px" }}>
+                  {Math.round((viralCount / totalAnalyses) * 100)}%
+                </div>
+                <p style={{ color: "rgba(255,255,255,0.4)", fontSize: "12px" }}>
+                  {viralCount > 0 ? `${viralCount} viral hit${viralCount !== 1 ? "s" : ""}!` : "Pro creators avg 15%"}
+                </p>
+              </>
+            )}
           </GlassPanel>
         </div>
 
@@ -197,7 +298,7 @@ export default function DashboardPage() {
                 <h3 style={{ color: "#fff", fontWeight: 500 }}>Monthly Performance</h3>
                 <p style={{ color: "rgba(255,255,255,0.45)", fontSize: "12px", marginTop: "2px" }}>Analyses vs Viral hits</p>
               </div>
-              <Link href="/library" style={{ color: "#c8ff00", fontSize: "12px", fontWeight: 500, display: "flex", alignItems: "center", gap: "4px", textDecoration: "none" }}>
+              <Link href="/library" style={{ color: "#7C3AED", fontSize: "12px", fontWeight: 500, display: "flex", alignItems: "center", gap: "4px", textDecoration: "none" }}>
                 View Details
                 <ChevronRight className="w-3 h-3" />
               </Link>
@@ -230,20 +331,20 @@ export default function DashboardPage() {
                   gap: "12px",
                   padding: "12px",
                   borderRadius: "12px",
-                  background: "rgba(200, 255, 0, 0.1)",
-                  border: "1px solid rgba(200, 255, 0, 0.3)",
+                  background: "rgba(124, 58, 237, 0.12)",
+                  border: "1px solid rgba(124, 58, 237, 0.3)",
                   textDecoration: "none",
                   transition: "all 200ms ease",
                 }}
               >
-                <div style={{ width: "40px", height: "40px", borderRadius: "10px", background: "#c8ff00", display: "flex", alignItems: "center", justifyContent: "center" }}>
-                  <Radar className="w-5 h-5" style={{ color: "#000" }} />
+                <div style={{ width: "40px", height: "40px", borderRadius: "10px", background: "linear-gradient(135deg, #7C3AED, #FF5757)", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                  <Radar className="w-5 h-5" style={{ color: "#fff" }} />
                 </div>
                 <div>
                   <span style={{ color: "#fff", fontWeight: 500, fontSize: "14px", display: "block" }}>New Analysis</span>
                   <span style={{ color: "rgba(255,255,255,0.45)", fontSize: "12px" }}>Predict viral potential</span>
                 </div>
-                <ArrowUpRight className="w-4 h-4" style={{ color: "#c8ff00", marginLeft: "auto" }} />
+                <ArrowUpRight className="w-4 h-4" style={{ color: "#7C3AED", marginLeft: "auto" }} />
               </Link>
 
               <Link
@@ -261,7 +362,7 @@ export default function DashboardPage() {
                 }}
               >
                 <div style={{ width: "40px", height: "40px", borderRadius: "10px", background: "rgba(255,255,255,0.08)", display: "flex", alignItems: "center", justifyContent: "center" }}>
-                  <Eye className="w-5 h-5" style={{ color: "#00e5cc" }} />
+                  <Eye className="w-5 h-5" style={{ color: "#7C3AED" }} />
                 </div>
                 <div>
                   <span style={{ color: "#fff", fontWeight: 500, fontSize: "14px", display: "block" }}>View History</span>
@@ -353,7 +454,7 @@ export default function DashboardPage() {
         <div style={{ gridColumn: "span 6" }}>
           <GlassPanel variant="strong" style={{ padding: "20px" }}>
             <div className="flex items-center gap-3 mb-4">
-              <div style={{ width: "40px", height: "40px", borderRadius: "10px", background: "linear-gradient(135deg, #a855f7, #00e5cc)", display: "flex", alignItems: "center", justifyContent: "center" }}>
+              <div style={{ width: "40px", height: "40px", borderRadius: "10px", background: "linear-gradient(135deg, #7C3AED, #FF5757)", display: "flex", alignItems: "center", justifyContent: "center" }}>
                 <Sparkles className="w-5 h-5" style={{ color: "#fff" }} />
               </div>
               <div>
@@ -364,26 +465,49 @@ export default function DashboardPage() {
 
             <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
               {analyses.length === 0 ? (
-                <p style={{ color: "rgba(255,255,255,0.45)", fontSize: "14px" }}>
-                  Analyze some videos to get personalized insights!
-                </p>
+                <div style={{ padding: "20px", background: "rgba(255,255,255,0.04)", borderRadius: "10px", textAlign: "center" }}>
+                  <Target className="w-8 h-8 mx-auto mb-3" style={{ color: "rgba(255,255,255,0.3)" }} />
+                  <p style={{ color: "rgba(255,255,255,0.6)", fontSize: "14px", marginBottom: "12px" }}>
+                    Analyze your first video to get personalized insights
+                  </p>
+                  <Link href="/analyze" className="btn btn-primary" style={{ display: "inline-flex" }}>
+                    <Radar className="w-4 h-4" />
+                    Start Analysis
+                  </Link>
+                </div>
               ) : (
                 <>
+                  {/* Primary insight - based on actual data */}
                   <InsightCard
-                    title="Keep Up the Good Work!"
-                    description={`You've analyzed ${totalAnalyses} video${totalAnalyses !== 1 ? 's' : ''} with an average score of ${avgScore}.`}
+                    title={avgScore >= 80 ? "You're on Fire!" : avgScore >= 60 ? "Solid Performance" : "Keep Learning"}
+                    description={`Based on ${totalAnalyses} analysis${totalAnalyses !== 1 ? "es" : ""}: Your average score is ${avgScore}. ${avgScore >= 80 ? "You're in the top 10% of creators!" : avgScore >= 60 ? "You're above average - keep it up!" : "Each analysis helps you improve."}`}
                     trend={avgScore >= 70 ? "positive" : avgScore >= 50 ? "neutral" : "negative"}
                   />
-                  <InsightCard
-                    title="Optimal Posting Time"
-                    description="Your best-performing videos were posted between 7-9 PM EST. Consider this window."
-                    trend="neutral"
-                  />
-                  {avgScore < 70 && (
+
+                  {/* Specific actionable insight based on weakest area */}
+                  {analyses.length > 0 && weakestArea.score < 75 && (
                     <InsightCard
-                      title="Room for Improvement"
-                      description="Focus on stronger hooks and trending audio to boost your scores."
-                      trend="negative"
+                      title={`Improve Your ${weakestArea.name} Score`}
+                      description={`Your ${weakestArea.name.toLowerCase()} scores average ${weakestArea.score}. ${weakestArea.tip} to boost your viral potential.`}
+                      trend="neutral"
+                    />
+                  )}
+
+                  {/* Best performer highlight */}
+                  {viralCount > 0 && (
+                    <InsightCard
+                      title={`${viralCount} Viral Hit${viralCount !== 1 ? "s" : ""}!`}
+                      description={`You have ${viralCount} video${viralCount !== 1 ? "s" : ""} scoring 80+. Review what worked and replicate it.`}
+                      trend="positive"
+                    />
+                  )}
+
+                  {/* Timing insight - only show if they have some data */}
+                  {totalAnalyses >= 3 && (
+                    <InsightCard
+                      title="Best Posting Times"
+                      description="Peak engagement: 7-9 PM EST weekdays. Schedule your best content for these windows."
+                      trend="neutral"
                     />
                   )}
                 </>

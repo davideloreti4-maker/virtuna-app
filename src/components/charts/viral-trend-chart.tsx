@@ -34,12 +34,12 @@ export function ViralTrendChart({ className = "" }: ViralTrendChartProps) {
         >
           <defs>
             <linearGradient id="scoreGradient" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="0%" stopColor="#c8ff00" stopOpacity={0.4} />
-              <stop offset="100%" stopColor="#c8ff00" stopOpacity={0} />
+              <stop offset="0%" stopColor="#7C3AED" stopOpacity={0.4} />
+              <stop offset="100%" stopColor="#7C3AED" stopOpacity={0} />
             </linearGradient>
             <linearGradient id="viewsGradient" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="0%" stopColor="#00e5cc" stopOpacity={0.3} />
-              <stop offset="100%" stopColor="#00e5cc" stopOpacity={0} />
+              <stop offset="0%" stopColor="#FF5757" stopOpacity={0.3} />
+              <stop offset="100%" stopColor="#FF5757" stopOpacity={0} />
             </linearGradient>
           </defs>
           <CartesianGrid
@@ -71,7 +71,7 @@ export function ViralTrendChart({ className = "" }: ViralTrendChartProps) {
           <Area
             type="monotone"
             dataKey="score"
-            stroke="#c8ff00"
+            stroke="#7C3AED"
             strokeWidth={2}
             fill="url(#scoreGradient)"
             name="Viral Score"

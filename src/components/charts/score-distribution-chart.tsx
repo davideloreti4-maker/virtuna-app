@@ -3,10 +3,10 @@
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip } from "recharts";
 
 const data = [
-  { name: "Viral (80+)", value: 35, color: "#22c55e" },
-  { name: "Good (60-79)", value: 40, color: "#c8ff00" },
-  { name: "Moderate (40-59)", value: 18, color: "#f59e0b" },
-  { name: "Low (<40)", value: 7, color: "#ef4444" },
+  { name: "Viral (80+)", value: 35, color: "#10B981" },
+  { name: "Good (60-79)", value: 40, color: "#7C3AED" },
+  { name: "Moderate (40-59)", value: 18, color: "#F59E0B" },
+  { name: "Low (<40)", value: 7, color: "#EF4444" },
 ];
 
 interface ScoreDistributionChartProps {
