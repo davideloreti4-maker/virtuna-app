@@ -1,7 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import { Inter, JetBrains_Mono } from "next/font/google";
 import "./globals.css";
-import { BottomNav } from "@/components/layout/bottom-nav";
+import { Providers } from "@/components/providers";
 
 const inter = Inter({
   variable: "--font-inter",
@@ -31,7 +31,7 @@ export const viewport: Viewport = {
   initialScale: 1,
   maximumScale: 1,
   userScalable: false,
-  themeColor: "#02010A",
+  themeColor: "#0a0a0c",
 };
 
 export default function RootLayout({
@@ -42,10 +42,9 @@ export default function RootLayout({
   return (
     <html lang="en" className="dark">
       <body className={`${inter.variable} ${jetbrainsMono.variable} antialiased`}>
-        <main className="min-h-dvh">
+        <Providers>
           {children}
-        </main>
-        <BottomNav />
+        </Providers>
       </body>
     </html>
   );
