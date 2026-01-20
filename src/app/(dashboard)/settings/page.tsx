@@ -83,10 +83,6 @@ export default function SettingsPage() {
     await handleUpgrade(plan, billing);
   };
 
-  // Check if user is approaching or at limit
-  const isAtLimit = remainingAnalyses === 0;
-  const isLowOnAnalyses = remainingAnalyses <= 2 && remainingAnalyses > 0;
-
   const handleEditProfile = () => {
     setEditName(profile?.full_name || "");
     setShowEditProfile(true);
@@ -123,6 +119,9 @@ export default function SettingsPage() {
   const remainingAnalyses = profile
     ? profile.analyses_limit - profile.analyses_count
     : 0;
+
+  const isAtLimit = remainingAnalyses === 0;
+  const isLowOnAnalyses = remainingAnalyses > 0 && remainingAnalyses <= 2;
 
   // Plan display names
   const planDisplayNames: Record<string, string> = {

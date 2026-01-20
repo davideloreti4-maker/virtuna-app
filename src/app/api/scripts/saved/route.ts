@@ -14,7 +14,7 @@ export async function GET() {
     }
 
     const { data: scripts, error } = await supabase
-      .from("saved_scripts")
+      .from("saved_scripts" as any)
       .select("*")
       .eq("user_id", user.id)
       .order("created_at", { ascending: false });
@@ -75,7 +75,7 @@ export async function POST(request: Request) {
     }
 
     const { data: script, error } = await supabase
-      .from("saved_scripts")
+      .from("saved_scripts" as any)
       .insert({
         user_id: user.id,
         title,
@@ -91,7 +91,7 @@ export async function POST(request: Request) {
         suggested_hashtags: suggestedHashtags,
         suggested_sounds: suggestedSounds,
         tips_for_delivery: tipsForDelivery,
-      })
+      } as any)
       .select()
       .single();
 
@@ -136,7 +136,7 @@ export async function DELETE(request: Request) {
     }
 
     const { error } = await supabase
-      .from("saved_scripts")
+      .from("saved_scripts" as any)
       .delete()
       .eq("id", scriptId)
       .eq("user_id", user.id);
