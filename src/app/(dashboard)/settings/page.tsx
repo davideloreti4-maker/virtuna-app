@@ -139,7 +139,7 @@ export default function SettingsPage() {
   }
 
   return (
-    <div className="animate-fade-in max-w-2xl">
+    <div className="animate-fade-in max-w-2xl mx-auto">
       {/* Edit Profile Modal */}
       {showEditProfile && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">

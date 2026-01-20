@@ -585,7 +585,7 @@ export default function ScriptsPage() {
 
       {/* History Tab - Viewing a script */}
       {activeTab === "history" && viewingScript && (
-        <div className="max-w-2xl">
+        <div className="max-w-2xl mx-auto">
           <button
             onClick={handleCloseViewingScript}
             className="btn mb-4"
@@ -605,7 +605,7 @@ export default function ScriptsPage() {
 
       {/* History Tab - List view */}
       {activeTab === "history" && !viewingScript && (
-        <div className="max-w-2xl">
+        <div className="max-w-2xl mx-auto">
           {isLoadingScripts ? (
             <div className="flex items-center justify-center py-12">
               <Loader2 className="w-6 h-6 animate-spin text-[var(--accent-primary)]" />
@@ -643,7 +643,7 @@ export default function ScriptsPage() {
 
       {/* Create Tab */}
       {activeTab === "create" && (
-        <div className="max-w-2xl">
+        <div className="max-w-2xl mx-auto">
           {!result ? (
           <div className="space-y-6">
             {/* Main Inputs */}

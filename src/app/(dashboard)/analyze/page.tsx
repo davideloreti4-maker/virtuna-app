@@ -152,7 +152,7 @@ export default function AnalyzePage() {
       </header>
 
       {!result ? (
-        <div className="max-w-2xl">
+        <div className="max-w-2xl mx-auto">
           {/* Input Section */}
           <div className="glass-panel-strong p-6 mb-6">
             <div className="flex items-center gap-4 mb-6">
@@ -285,7 +285,7 @@ export default function AnalyzePage() {
           </Link>
         </div>
       ) : (
-        <div className="max-w-3xl">
+        <div className="max-w-3xl mx-auto">
           {/* First Analysis Celebration */}
           {showFirstAnalysisCelebration && (
             <div className="glass-panel-strong p-4 mb-6 border border-[var(--accent-primary)]/30 bg-gradient-to-r from-[var(--accent-primary)]/10 to-[var(--accent-secondary)]/10 animate-fade-in">
