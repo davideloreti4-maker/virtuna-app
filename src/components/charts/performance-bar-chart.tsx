@@ -35,8 +35,8 @@ export function PerformanceBarChart({ className = "" }: PerformanceBarChartProps
         >
           <defs>
             <linearGradient id="barGradient1" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="0%" stopColor="rgba(255,255,255,0.25)" />
-              <stop offset="100%" stopColor="rgba(255,255,255,0.05)" />
+              <stop offset="0%" stopColor="#6B7280" />
+              <stop offset="100%" stopColor="#374151" />
             </linearGradient>
             <linearGradient id="barGradient2" x1="0" y1="0" x2="0" y2="1">
               <stop offset="0%" stopColor="#7C3AED" />
