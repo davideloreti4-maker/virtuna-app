@@ -1,7 +1,7 @@
 # Virtuna Audit - Task & Status Tracker
 
 **Last Updated:** 2026-01-20
-**Overall Progress:** 14/26 tasks complete
+**Overall Progress:** 18/26 tasks complete
 
 ---
 
@@ -58,12 +58,12 @@ Run the migration in Supabase SQL Editor:
 
 | ID | Task | Status | Effort | Notes |
 |----|------|--------|--------|-------|
-| T-015 | Add "Analyze Another Video" CTA to detail page | ⬜ TODO | 2h | Continue momentum |
-| T-016 | Add share button for scores 70+ | ⬜ TODO | 6h | Social sharing |
-| T-017 | Add script generator CTA on analysis results | ⬜ TODO | 3h | Cross-feature promotion |
-| T-018 | Show score comparison to previous analysis | ⬜ TODO | 4h | Track improvement |
+| T-015 | Add "Analyze Another Video" CTA to detail page | ✅ DONE | 2h | "What's Next?" section with CTA cards |
+| T-016 | Add share button for scores 70+ | ✅ DONE | 6h | Copy + Twitter sharing for high scores |
+| T-017 | Add script generator CTA on analysis results | ✅ DONE | 3h | Script generator link in actions |
+| T-018 | Show score comparison to previous analysis | ✅ DONE | 4h | Shows diff vs previous in score hero |
 
-**Phase 4 Progress:** 0/4 complete
+**Phase 4 Progress:** 4/4 complete
 
 ---
 
@@ -108,6 +108,28 @@ Run the migration in Supabase SQL Editor:
 ## Execution Log
 
 ### 2026-01-20
+
+**Phase 4 Analysis Experience - COMPLETED**
+
+- **T-015**: Added "What's Next?" section to detail page
+  - Analyze Another Video CTA
+  - Links to /analyze with Radar icon
+
+- **T-016**: Added share functionality for scores 70+
+  - Copy to clipboard with share text
+  - Twitter/X share button
+  - Gradient styling for high-score shares
+
+- **T-017**: Added Script Generator CTA
+  - Links to /scripts page
+  - FileText icon with secondary accent
+
+- **T-018**: Added score comparison to previous
+  - Fetches last 10 analyses
+  - Shows +/- diff vs previous score
+  - Green/red color coding for improvement/decline
+
+---
 
 **Phase 3 Onboarding Flow - COMPLETED**
 
@@ -181,7 +203,7 @@ Run the migration in Supabase SQL Editor:
 ## Quick Stats
 
 - **Total Tasks:** 26
-- **Completed:** 14
+- **Completed:** 18
 - **In Progress:** 0
-- **Remaining:** 12
-- **Estimated Hours:** ~48h remaining
+- **Remaining:** 8
+- **Estimated Hours:** ~33h remaining

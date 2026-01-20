@@ -19,8 +19,14 @@ import {
   MessageCircle,
   Share2,
   Eye,
+  Radar,
+  FileText,
+  Twitter,
+  Copy,
+  Check,
 } from "lucide-react";
-import { useAnalysis, useDeleteAnalysis } from "@/lib/hooks/use-analyses";
+import { useState } from "react";
+import { useAnalysis, useDeleteAnalysis, useAnalyses } from "@/lib/hooks/use-analyses";
 import { formatRelativeDate, formatNumber } from "@/lib/utils/format";
 import type { AISuggestion } from "@/types/analysis";
 
@@ -32,14 +38,46 @@ export default function AnalysisDetailPage({ params }: PageProps) {
   const { id } = use(params);
   const router = useRouter();
   const { data, isLoading, error } = useAnalysis(id);
+  const { data: analysesData } = useAnalyses({ limit: 10, sort: 'date', order: 'desc' });
   const deleteMutation = useDeleteAnalysis();
+  const [copiedShare, setCopiedShare] = useState(false);
 
   const analysis = data?.analysis;
+  const canShare = (analysis?.overall_score || 0) >= 70;
+
+  // Find previous analysis (the one created before this one)
+  const allAnalyses = analysesData?.analyses || [];
+  const currentIndex = allAnalyses.findIndex(a => a.id === id);
+  const previousAnalysis = currentIndex >= 0 && currentIndex < allAnalyses.length - 1
+    ? allAnalyses[currentIndex + 1]
+    : null;
+
+  const scoreComparison = previousAnalysis && analysis
+    ? {
+        diff: (analysis.overall_score || 0) - (previousAnalysis.overall_score || 0),
+        previousScore: previousAnalysis.overall_score || 0,
+      }
+    : null;
 
   const handleDelete = async () => {
     if (confirm("Are you sure you want to delete this analysis?")) {
       await deleteMutation.mutateAsync(id);
       router.push("/library");
+    }
+  };
+
+  const handleShare = async (type: 'copy' | 'twitter') => {
+    const score = analysis?.overall_score || 0;
+    const shareText = `I just scored ${score}/100 on my TikTok viral potential! 🚀 Analyze your videos at Virtuna`;
+    const shareUrl = typeof window !== 'undefined' ? window.location.href : '';
+
+    if (type === 'copy') {
+      await navigator.clipboard.writeText(`${shareText}\n${shareUrl}`);
+      setCopiedShare(true);
+      setTimeout(() => setCopiedShare(false), 2000);
+    } else if (type === 'twitter') {
+      const twitterUrl = `https://twitter.com/intent/tweet?text=${encodeURIComponent(shareText)}&url=${encodeURIComponent(shareUrl)}`;
+      window.open(twitterUrl, '_blank');
     }
   };
 
@@ -171,6 +209,41 @@ export default function AnalysisDetailPage({ params }: PageProps) {
           >
             {getScoreGrade(score).label}
           </span>
+
+          {/* Score Comparison */}
+          {scoreComparison && (
+            <div className="mt-4 pt-4 border-t border-white/10">
+              <div className="flex items-center justify-center gap-2 text-sm">
+                <span className="text-[var(--text-muted)]">vs previous:</span>
+                <span
+                  className={`font-semibold flex items-center gap-1 ${
+                    scoreComparison.diff > 0
+                      ? 'text-[var(--color-success)]'
+                      : scoreComparison.diff < 0
+                      ? 'text-[var(--color-danger)]'
+                      : 'text-[var(--text-muted)]'
+                  }`}
+                >
+                  {scoreComparison.diff > 0 ? (
+                    <>
+                      <TrendingUp className="w-4 h-4" />
+                      +{scoreComparison.diff}
+                    </>
+                  ) : scoreComparison.diff < 0 ? (
+                    <>
+                      <TrendingUp className="w-4 h-4 rotate-180" />
+                      {scoreComparison.diff}
+                    </>
+                  ) : (
+                    'No change'
+                  )}
+                </span>
+                <span className="text-[var(--text-tertiary)]">
+                  (was {scoreComparison.previousScore})
+                </span>
+              </div>
+            </div>
+          )}
         </div>
 
         {/* Video Info */}
@@ -322,10 +395,76 @@ export default function AnalysisDetailPage({ params }: PageProps) {
         </div>
 
         {/* Processing Info */}
-        <div className="glass-panel p-4">
+        <div className="glass-panel p-4 mb-6">
           <div className="flex items-center justify-between text-sm text-[var(--text-muted)]">
             <span>Processing time: {analysis.processing_time}ms</span>
             <span>Video ID: {analysis.video_id}</span>
+          </div>
+        </div>
+
+        {/* Actions */}
+        <div className="glass-panel-strong p-6">
+          <h3 className="text-white font-semibold mb-4">What&apos;s Next?</h3>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+            {/* Analyze Another */}
+            <Link
+              href="/analyze"
+              className="flex items-center gap-3 p-4 rounded-xl bg-[var(--glass-bg)] hover:bg-[var(--glass-bg-hover)] border border-[var(--glass-border)] transition-colors group"
+            >
+              <div className="w-10 h-10 rounded-xl bg-[var(--accent-primary)]/20 flex items-center justify-center">
+                <Radar className="w-5 h-5 text-[var(--accent-primary)]" />
+              </div>
+              <div>
+                <span className="text-white font-medium block">Analyze Another</span>
+                <span className="text-[var(--text-muted)] text-xs">Test more videos</span>
+              </div>
+            </Link>
+
+            {/* Generate Script CTA */}
+            <Link
+              href="/scripts"
+              className="flex items-center gap-3 p-4 rounded-xl bg-[var(--glass-bg)] hover:bg-[var(--glass-bg-hover)] border border-[var(--glass-border)] transition-colors group"
+            >
+              <div className="w-10 h-10 rounded-xl bg-[var(--accent-secondary)]/20 flex items-center justify-center">
+                <FileText className="w-5 h-5 text-[var(--accent-secondary)]" />
+              </div>
+              <div>
+                <span className="text-white font-medium block">Generate Script</span>
+                <span className="text-[var(--text-muted)] text-xs">AI-powered content</span>
+              </div>
+            </Link>
+
+            {/* Share (only for scores 70+) */}
+            {canShare && (
+              <div className="relative">
+                <button
+                  onClick={() => handleShare('copy')}
+                  className="w-full flex items-center gap-3 p-4 rounded-xl bg-gradient-to-r from-[var(--accent-primary)]/10 to-[var(--accent-secondary)]/10 border border-[var(--accent-primary)]/30 hover:border-[var(--accent-primary)]/50 transition-colors"
+                >
+                  <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-[var(--accent-primary)] to-[var(--accent-secondary)] flex items-center justify-center">
+                    {copiedShare ? (
+                      <Check className="w-5 h-5 text-white" />
+                    ) : (
+                      <Share2 className="w-5 h-5 text-white" />
+                    )}
+                  </div>
+                  <div className="text-left">
+                    <span className="text-white font-medium block">
+                      {copiedShare ? 'Copied!' : 'Share Score'}
+                    </span>
+                    <span className="text-[var(--text-muted)] text-xs">Brag about your {score}!</span>
+                  </div>
+                </button>
+                {/* Twitter share button */}
+                <button
+                  onClick={() => handleShare('twitter')}
+                  className="absolute -top-2 -right-2 w-8 h-8 rounded-full bg-[#1DA1F2] flex items-center justify-center hover:scale-110 transition-transform shadow-lg"
+                  title="Share on Twitter/X"
+                >
+                  <Twitter className="w-4 h-4 text-white" />
+                </button>
+              </div>
+            )}
           </div>
         </div>
       </div>
