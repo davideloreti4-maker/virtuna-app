@@ -28,9 +28,9 @@ function isPublicPath(pathname: string): boolean {
 }
 
 /**
- * Auth middleware - protects routes and manages session
+ * Auth proxy - protects routes and manages session
  */
-export async function middleware(request: NextRequest) {
+export async function proxy(request: NextRequest) {
   let response = NextResponse.next({
     request: {
       headers: request.headers,
@@ -85,7 +85,7 @@ export async function middleware(request: NextRequest) {
 }
 
 /**
- * Configure which paths the middleware runs on
+ * Configure which paths the proxy runs on
  */
 export const config = {
   matcher: [
