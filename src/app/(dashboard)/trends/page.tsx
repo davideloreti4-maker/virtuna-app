@@ -1,11 +1,12 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import {
   TrendingUp,
   Music,
   Play,
+  Pause,
   Search,
   Filter,
   ChevronUp,
@@ -17,6 +18,7 @@ import {
   Copy,
   Check,
   Loader2,
+  Volume2,
 } from "lucide-react";
 import type {
   TrendingSound,
@@ -59,9 +61,13 @@ function TrendIcon({ trend }: { trend: TrendingSound["trend"] }) {
 function SoundCard({
   sound,
   rank,
+  isPlaying,
+  onPlayToggle,
 }: {
   sound: TrendingSound;
   rank: number;
+  isPlaying: boolean;
+  onPlayToggle: (soundId: string, previewUrl: string | null) => void;
 }) {
   const [copied, setCopied] = useState(false);
   const badge = getTrendBadge(sound.trend);
@@ -72,66 +78,101 @@ function SoundCard({
     setTimeout(() => setCopied(false), 2000);
   };
 
+  const handlePlayClick = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    onPlayToggle(sound.id, sound.previewUrl);
+  };
+
   return (
-    <div className="glass-panel p-4 hover:bg-white/5 transition-colors">
-      <div className="flex items-start gap-4">
-        {/* Rank */}
-        <div className="w-8 h-8 rounded-lg bg-white/10 flex items-center justify-center text-sm font-bold text-white/70">
+    <div className="glass-panel p-3 sm:p-4 hover:bg-white/5 transition-colors">
+      <div className="flex items-start gap-2 sm:gap-4">
+        {/* Rank - Hidden on mobile, shown as badge instead */}
+        <div className="hidden sm:flex w-8 h-8 rounded-lg bg-white/10 items-center justify-center text-sm font-bold text-white/70 flex-shrink-0">
           {rank}
         </div>
 
         {/* Cover / Play Button */}
-        <div className="w-14 h-14 rounded-xl bg-gradient-to-br from-[var(--accent-primary)] to-[var(--accent-secondary)] flex items-center justify-center flex-shrink-0">
+        <button
+          onClick={handlePlayClick}
+          className="w-12 h-12 sm:w-14 sm:h-14 rounded-xl bg-gradient-to-br from-[var(--accent-primary)] to-[var(--accent-secondary)] flex items-center justify-center flex-shrink-0 relative group cursor-pointer hover:scale-105 transition-transform"
+          title={sound.previewUrl ? (isPlaying ? "Pause preview" : "Play preview") : "No preview available"}
+        >
           {sound.coverUrl ? (
-            <img
-              src={sound.coverUrl}
-              alt={sound.name}
-              className="w-full h-full object-cover rounded-xl"
-            />
+            <>
+              <img
+                src={sound.coverUrl}
+                alt={sound.name}
+                className="w-full h-full object-cover rounded-xl"
+              />
+              <div className={`absolute inset-0 bg-black/40 rounded-xl flex items-center justify-center ${isPlaying ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'} transition-opacity`}>
+                {isPlaying ? (
+                  <Pause className="w-5 h-5 text-white" />
+                ) : (
+                  <Play className="w-5 h-5 text-white ml-0.5" />
+                )}
+              </div>
+            </>
           ) : (
-            <Music className="w-6 h-6 text-white" />
+            <>
+              {isPlaying ? (
+                <Volume2 className="w-5 h-5 sm:w-6 sm:h-6 text-white animate-pulse" />
+              ) : (
+                <Music className="w-5 h-5 sm:w-6 sm:h-6 text-white group-hover:hidden" />
+              )}
+              {!isPlaying && <Play className="w-5 h-5 sm:w-6 sm:h-6 text-white hidden group-hover:block ml-0.5" />}
+            </>
           )}
-        </div>
+          {/* Mobile rank badge */}
+          <div className="sm:hidden absolute -top-1 -left-1 w-5 h-5 rounded-full bg-white/20 flex items-center justify-center text-[10px] font-bold text-white">
+            {rank}
+          </div>
+          {/* Playing indicator */}
+          {isPlaying && (
+            <div className="absolute -bottom-1 -right-1 w-4 h-4 rounded-full bg-[var(--color-success)] flex items-center justify-center">
+              <div className="w-1.5 h-1.5 rounded-full bg-white animate-pulse" />
+            </div>
+          )}
+        </button>
 
         {/* Info */}
         <div className="flex-1 min-w-0">
           <div className="flex items-start justify-between gap-2">
             <div className="min-w-0">
-              <h3 className="text-white font-medium truncate">{sound.name}</h3>
-              <p className="text-[var(--text-tertiary)] text-sm truncate">
+              <h3 className="text-white font-medium text-sm sm:text-base truncate">{sound.name}</h3>
+              <p className="text-[var(--text-tertiary)] text-xs sm:text-sm truncate">
                 @{sound.author}
               </p>
             </div>
             <div
-              className="flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium flex-shrink-0"
+              className="flex items-center gap-1 px-2 py-1 rounded-full text-[10px] sm:text-xs font-medium flex-shrink-0"
               style={{
                 backgroundColor: `${badge.color}20`,
                 color: badge.color,
               }}
             >
               <TrendIcon trend={sound.trend} />
-              {badge.label}
+              <span className="hidden sm:inline">{badge.label}</span>
             </div>
           </div>
 
-          {/* Stats */}
-          <div className="flex items-center gap-4 mt-2 text-xs text-[var(--text-muted)]">
+          {/* Stats - Simplified on mobile */}
+          <div className="flex items-center gap-2 sm:gap-4 mt-2 text-[10px] sm:text-xs text-[var(--text-muted)]">
             <span className="flex items-center gap-1">
               <Play className="w-3 h-3" />
               {formatPlayCount(sound.playCount)}
             </span>
             <span className="flex items-center gap-1">
               <Video className="w-3 h-3" />
-              {formatPlayCount(sound.videoCount)} videos
+              {formatPlayCount(sound.videoCount)}
             </span>
-            <span className="flex items-center gap-1">
+            <span className="hidden sm:flex items-center gap-1">
               <Clock className="w-3 h-3" />
               {sound.duration}s
             </span>
           </div>
 
-          {/* Tags */}
-          <div className="flex items-center gap-2 mt-2 flex-wrap">
+          {/* Tags - Hidden on mobile */}
+          <div className="hidden sm:flex items-center gap-2 mt-2 flex-wrap">
             <span
               className="px-2 py-0.5 rounded text-xs"
               style={{
@@ -153,16 +194,16 @@ function SoundCard({
         </div>
 
         {/* Trend Score & Actions */}
-        <div className="flex flex-col items-end gap-2">
+        <div className="flex flex-col items-end gap-1 sm:gap-2 flex-shrink-0">
           <div className="text-right">
-            <div className="text-2xl font-bold text-white">
+            <div className="text-lg sm:text-2xl font-bold text-white">
               {sound.trendScore}
             </div>
-            <div className="text-xs text-[var(--text-muted)]">Score</div>
+            <div className="text-[10px] sm:text-xs text-[var(--text-muted)]">Score</div>
           </div>
           <button
             onClick={handleCopy}
-            className="flex items-center gap-1 px-2 py-1 rounded-lg bg-white/10 hover:bg-white/20 transition-colors text-xs text-white"
+            className="hidden sm:flex items-center gap-1 px-2 py-1 rounded-lg bg-white/10 hover:bg-white/20 transition-colors text-xs text-white"
           >
             {copied ? (
               <>
@@ -172,7 +213,7 @@ function SoundCard({
             ) : (
               <>
                 <Copy className="w-3 h-3" />
-                Copy Name
+                Copy
               </>
             )}
           </button>
@@ -187,6 +228,63 @@ export default function TrendsPage() {
   const [selectedTrend, setSelectedTrend] = useState<string>("");
   const [searchQuery, setSearchQuery] = useState("");
   const [debouncedSearch, setDebouncedSearch] = useState("");
+  const [playingId, setPlayingId] = useState<string | null>(null);
+  const audioRef = useRef<HTMLAudioElement | null>(null);
+
+  // Cleanup audio on unmount
+  useEffect(() => {
+    return () => {
+      if (audioRef.current) {
+        audioRef.current.pause();
+        audioRef.current = null;
+      }
+    };
+  }, []);
+
+  const handlePlayToggle = (soundId: string, previewUrl: string | null) => {
+    // If same sound is playing, stop it
+    if (playingId === soundId) {
+      if (audioRef.current) {
+        audioRef.current.pause();
+        audioRef.current = null;
+      }
+      setPlayingId(null);
+      return;
+    }
+
+    // Stop any currently playing audio
+    if (audioRef.current) {
+      audioRef.current.pause();
+      audioRef.current = null;
+    }
+
+    // If no preview URL, show a message (in production, this would be a real URL)
+    if (!previewUrl) {
+      // For mock data, we'll just show a visual indicator
+      setPlayingId(soundId);
+      // Auto-stop after 3 seconds for demo
+      setTimeout(() => {
+        setPlayingId((current) => (current === soundId ? null : current));
+      }, 3000);
+      return;
+    }
+
+    // Play the new audio
+    const audio = new Audio(previewUrl);
+    audio.addEventListener("ended", () => {
+      setPlayingId(null);
+      audioRef.current = null;
+    });
+    audio.addEventListener("error", () => {
+      setPlayingId(null);
+      audioRef.current = null;
+    });
+    audio.play().catch(() => {
+      setPlayingId(null);
+    });
+    audioRef.current = audio;
+    setPlayingId(soundId);
+  };
 
   // Debounce search
   const handleSearchChange = (value: string) => {
@@ -287,22 +385,22 @@ export default function TrendsPage() {
       </div>
 
       {/* Stats Bar */}
-      <div className="grid grid-cols-3 gap-4">
-        <div className="glass-panel p-4 text-center">
-          <div className="text-2xl font-bold text-white">
+      <div className="grid grid-cols-3 gap-2 sm:gap-4">
+        <div className="glass-panel p-3 sm:p-4 text-center">
+          <div className="text-lg sm:text-2xl font-bold text-white">
             {data?.sounds.filter((s) => s.trend === "rising").length || 0}
           </div>
-          <div className="text-xs text-[var(--text-muted)] mt-1">Rising Sounds</div>
+          <div className="text-[10px] sm:text-xs text-[var(--text-muted)] mt-1">Rising</div>
         </div>
-        <div className="glass-panel p-4 text-center">
-          <div className="text-2xl font-bold text-white">{data?.total || 0}</div>
-          <div className="text-xs text-[var(--text-muted)] mt-1">Total Results</div>
+        <div className="glass-panel p-3 sm:p-4 text-center">
+          <div className="text-lg sm:text-2xl font-bold text-white">{data?.total || 0}</div>
+          <div className="text-[10px] sm:text-xs text-[var(--text-muted)] mt-1">Total</div>
         </div>
-        <div className="glass-panel p-4 text-center">
-          <div className="text-2xl font-bold text-white">
+        <div className="glass-panel p-3 sm:p-4 text-center">
+          <div className="text-lg sm:text-2xl font-bold text-white">
             {data?.sounds[0]?.trendScore || 0}
           </div>
-          <div className="text-xs text-[var(--text-muted)] mt-1">Top Score</div>
+          <div className="text-[10px] sm:text-xs text-[var(--text-muted)] mt-1">Top Score</div>
         </div>
       </div>
 
@@ -328,7 +426,13 @@ export default function TrendsPage() {
           </div>
         ) : (
           data?.sounds.map((sound, index) => (
-            <SoundCard key={sound.id} sound={sound} rank={index + 1} />
+            <SoundCard
+              key={sound.id}
+              sound={sound}
+              rank={index + 1}
+              isPlaying={playingId === sound.id}
+              onPlayToggle={handlePlayToggle}
+            />
           ))
         )}
       </div>

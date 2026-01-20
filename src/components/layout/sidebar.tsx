@@ -1,5 +1,6 @@
 "use client";
 
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
@@ -15,6 +16,19 @@ import {
   Users,
 } from "lucide-react";
 import { Logo } from "@/components/ui/logo";
+
+function useIsDesktop() {
+  const [isDesktop, setIsDesktop] = useState(true);
+
+  useEffect(() => {
+    const checkDesktop = () => setIsDesktop(window.innerWidth >= 1024);
+    checkDesktop();
+    window.addEventListener("resize", checkDesktop);
+    return () => window.removeEventListener("resize", checkDesktop);
+  }, []);
+
+  return isDesktop;
+}
 
 const mainNav = [
   { href: "/", icon: LayoutDashboard, label: "Dashboard" },
@@ -33,6 +47,10 @@ const toolsNav = [
 
 export function Sidebar() {
   const pathname = usePathname();
+  const isDesktop = useIsDesktop();
+
+  // Don't render on mobile
+  if (!isDesktop) return null;
 
   return (
     <>
@@ -50,8 +68,9 @@ export function Sidebar() {
           borderRight: "1px solid rgba(255, 255, 255, 0.15)",
           padding: "24px 16px",
           zIndex: 100,
+          display: "flex",
+          flexDirection: "column",
         }}
-        className="hidden lg:flex flex-col"
       >
         {/* Logo */}
         <div style={{ padding: "8px 12px", marginBottom: "32px" }}>

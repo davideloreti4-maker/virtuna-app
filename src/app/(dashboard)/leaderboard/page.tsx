@@ -104,30 +104,21 @@ export default function LeaderboardPage() {
   const activeTypeConfig = leaderboardTypes.find((t) => t.type === activeType)!;
 
   return (
-    <div style={{ animation: "fadeIn 0.3s ease-out" }}>
+    <div className="animate-fade-in">
       {/* Header */}
-      <header style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "32px" }}>
-        <div>
-          <div className="flex items-center gap-3">
-            <div
-              style={{
-                width: "48px",
-                height: "48px",
-                borderRadius: "14px",
-                background: "linear-gradient(135deg, #7C3AED 0%, #F59E0B 100%)",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-              }}
-            >
-              <Trophy className="w-6 h-6" style={{ color: "#fff" }} />
-            </div>
-            <div>
-              <h1 style={{ fontSize: "28px", fontWeight: 600, color: "#fff", marginBottom: "4px" }}>Leaderboard</h1>
-              <p style={{ color: "rgba(255,255,255,0.45)", fontSize: "14px" }}>
-                See how you rank against other creators
-              </p>
-            </div>
+      <header className="page-header">
+        <div className="flex items-center gap-3">
+          <div
+            className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl sm:rounded-[14px] flex items-center justify-center flex-shrink-0"
+            style={{ background: "linear-gradient(135deg, #7C3AED 0%, #F59E0B 100%)" }}
+          >
+            <Trophy className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
+          </div>
+          <div className="min-w-0">
+            <h1 className="page-title">Leaderboard</h1>
+            <p className="text-[var(--text-tertiary)] text-xs sm:text-sm mt-1">
+              See how you rank against other creators
+            </p>
           </div>
         </div>
       </header>

@@ -240,7 +240,7 @@ export default function QuickAnalyzePage() {
           </GlassPanel>
 
           {/* Popular Niches */}
-          <GlassPanel style={{ padding: "20px" }}>
+          <GlassPanel style={{ padding: "20px", marginBottom: "24px" }}>
             <h3 style={{ color: "rgba(255,255,255,0.4)", fontSize: "11px", textTransform: "uppercase", letterSpacing: "0.05em", marginBottom: "16px" }}>
               Popular Niches
             </h3>
@@ -265,6 +265,57 @@ export default function QuickAnalyzePage() {
                   {popularNiche}
                 </button>
               ))}
+            </div>
+          </GlassPanel>
+
+          {/* What You'll Get Preview */}
+          <GlassPanel style={{ padding: "20px" }}>
+            <h3 style={{ color: "rgba(255,255,255,0.4)", fontSize: "11px", textTransform: "uppercase", letterSpacing: "0.05em", marginBottom: "16px" }}>
+              What You&apos;ll Get
+            </h3>
+            <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+              <div className="flex items-center gap-3 p-3 rounded-xl bg-[rgba(124,58,237,0.1)] border border-[rgba(124,58,237,0.2)]">
+                <Lightbulb className="w-5 h-5 text-[#7C3AED] flex-shrink-0" />
+                <div>
+                  <span className="text-white text-sm font-medium block">Key Insights</span>
+                  <span className="text-white/40 text-xs">Niche-specific tips</span>
+                </div>
+              </div>
+              <div className="flex items-center gap-3 p-3 rounded-xl bg-[rgba(34,197,94,0.1)] border border-[rgba(34,197,94,0.2)]">
+                <TrendingUp className="w-5 h-5 text-[#22C55E] flex-shrink-0" />
+                <div>
+                  <span className="text-white text-sm font-medium block">Trending Formats</span>
+                  <span className="text-white/40 text-xs">What&apos;s working now</span>
+                </div>
+              </div>
+              <div className="flex items-center gap-3 p-3 rounded-xl bg-[rgba(236,72,153,0.1)] border border-[rgba(236,72,153,0.2)]">
+                <Sparkles className="w-5 h-5 text-[#EC4899] flex-shrink-0" />
+                <div>
+                  <span className="text-white text-sm font-medium block">Content Ideas</span>
+                  <span className="text-white/40 text-xs">Ready-to-use concepts</span>
+                </div>
+              </div>
+              <div className="flex items-center gap-3 p-3 rounded-xl bg-[rgba(59,130,246,0.1)] border border-[rgba(59,130,246,0.2)]">
+                <Clock className="w-5 h-5 text-[#3B82F6] flex-shrink-0" />
+                <div>
+                  <span className="text-white text-sm font-medium block">Best Times</span>
+                  <span className="text-white/40 text-xs">When to post</span>
+                </div>
+              </div>
+              <div className="flex items-center gap-3 p-3 rounded-xl bg-[rgba(168,85,247,0.1)] border border-[rgba(168,85,247,0.2)]">
+                <Music className="w-5 h-5 text-[#A855F7] flex-shrink-0" />
+                <div>
+                  <span className="text-white text-sm font-medium block">Sound Types</span>
+                  <span className="text-white/40 text-xs">Audio recommendations</span>
+                </div>
+              </div>
+              <div className="flex items-center gap-3 p-3 rounded-xl bg-[rgba(14,165,233,0.1)] border border-[rgba(14,165,233,0.2)]">
+                <Users className="w-5 h-5 text-[#0EA5E9] flex-shrink-0" />
+                <div>
+                  <span className="text-white text-sm font-medium block">Audience</span>
+                  <span className="text-white/40 text-xs">Who to target</span>
+                </div>
+              </div>
             </div>
           </GlassPanel>
         </div>

@@ -663,6 +663,20 @@ body {
 }
 
 /* ============================================
+   Sidebar & Navigation
+   ============================================ */
+
+aside.sidebar {
+  display: none !important;
+}
+
+@media (min-width: 1024px) {
+  aside.sidebar {
+    display: flex !important;
+  }
+}
+
+/* ============================================
    Mobile-First Utilities
    ============================================ */
 
