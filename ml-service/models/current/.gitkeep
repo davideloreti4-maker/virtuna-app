@@ -1,0 +1,3 @@
+# Placeholder for trained model files
+# model.joblib - XGBoost trained model
+# model_metadata.json - Model version and training info

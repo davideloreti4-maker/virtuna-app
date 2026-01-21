@@ -1,0 +1,66 @@
+# A3 ML Service - Systemd Service Configuration
+# Location: /etc/systemd/system/viral-ml.service
+#
+# Commands:
+#   systemctl start viral-ml     - Start the service
+#   systemctl stop viral-ml      - Stop the service
+#   systemctl restart viral-ml   - Restart the service
+#   systemctl status viral-ml    - Check status
+#   systemctl enable viral-ml    - Enable auto-start on boot
+#   journalctl -u viral-ml -f    - View live logs
+
+[Unit]
+Description=A3 Viral ML Prediction API
+Documentation=https://github.com/your-repo/a3-platform
+After=network.target network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=mlservice
+Group=mlservice
+WorkingDirectory=/opt/viral-ml
+
+# Environment
+Environment="PATH=/opt/viral-ml/venv/bin:/usr/local/bin:/usr/bin:/bin"
+Environment="PYTHONUNBUFFERED=1"
+EnvironmentFile=/opt/viral-ml/.env
+
+# Start command - 2 workers for the 4 vCPU server
+ExecStart=/opt/viral-ml/venv/bin/uvicorn api.main:app \
+    --host 127.0.0.1 \
+    --port 8000 \
+    --workers 2 \
+    --loop uvloop \
+    --http httptools \
+    --log-level info
+
+# Restart policy
+Restart=always
+RestartSec=10
+StartLimitInterval=60
+StartLimitBurst=3
+
+# Security hardening
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=true
+ReadWritePaths=/opt/viral-ml/logs /opt/viral-ml/models /opt/viral-ml/data
+
+# Resource limits
+MemoryMax=6G
+CPUQuota=350%
+
+# Logging
+StandardOutput=append:/opt/viral-ml/logs/api.log
+StandardError=append:/opt/viral-ml/logs/api-error.log
+SyslogIdentifier=viral-ml
+
+# Graceful shutdown
+TimeoutStopSec=30
+KillMode=mixed
+KillSignal=SIGTERM
+
+[Install]
+WantedBy=multi-user.target

@@ -16,6 +16,7 @@ const publicPaths = [
   '/forgot-password',
   '/reset-password',
   '/api/auth/callback',
+  '/api/ml-predict',
 ]
 
 /**
