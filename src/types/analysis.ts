@@ -107,7 +107,8 @@ export interface MLScoringMetadata {
   gemini_score: number | null
   formula_score: number
   model_version: string | null
-  top_features: Array<{ feature: string; importance: number }>
+  // Supports both { feature, importance } format and { featureName: importance } format
+  top_features: Array<{ feature: string; importance: number } | Record<string, number>>
   scoring_method: 'hybrid' | 'ml' | 'gemini' | 'formula'
   weights_used: {
     ml: number

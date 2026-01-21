@@ -606,14 +606,20 @@ function MLInsightsPanel({ mlScoring }: { mlScoring: MLScoringMetadata }) {
             <div className="p-3 rounded-xl bg-[var(--glass-bg)]">
               <span className="text-xs text-[var(--text-muted)] block mb-2">Top Factors</span>
               <div className="flex flex-wrap gap-1">
-                {mlScoring.top_features.slice(0, 3).map((f, i) => (
-                  <span
-                    key={i}
-                    className="text-xs px-2 py-0.5 rounded bg-[var(--accent-primary)]/20 text-[var(--accent-primary)]"
-                  >
-                    {f.feature.replace(/_/g, ' ')}
-                  </span>
-                ))}
+                {mlScoring.top_features.slice(0, 3).map((f, i) => {
+                  // Handle both formats: { feature, importance } and { featureName: importance }
+                  const featureName = 'feature' in f
+                    ? f.feature
+                    : Object.keys(f)[0] || 'unknown'
+                  return (
+                    <span
+                      key={i}
+                      className="text-xs px-2 py-0.5 rounded bg-[var(--accent-primary)]/20 text-[var(--accent-primary)]"
+                    >
+                      {featureName.replace(/_/g, ' ')}
+                    </span>
+                  )
+                })}
               </div>
             </div>
           )}
