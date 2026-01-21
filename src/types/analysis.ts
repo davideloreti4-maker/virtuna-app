@@ -19,6 +19,8 @@ export interface VideoMetadata {
   soundAuthor: string | null
   soundPlayCount?: number
   createTime?: string
+  // ML scoring metadata (added by hybrid scorer)
+  ml_scoring?: MLScoringMetadata
 }
 
 /**
@@ -96,10 +98,35 @@ export interface AnalyzeRequest {
 }
 
 /**
+ * ML scoring metadata
+ */
+export interface MLScoringMetadata {
+  ml_score: number | null
+  ml_confidence: number | null
+  ml_class: string | null
+  gemini_score: number | null
+  formula_score: number
+  model_version: string | null
+  top_features: Array<{ feature: string; importance: number }>
+  scoring_method: 'hybrid' | 'ml' | 'gemini' | 'formula'
+  weights_used: {
+    ml: number
+    gemini: number
+    formula: number
+  }
+  sources_available: {
+    ml: boolean
+    gemini: boolean
+    formula: boolean
+  }
+}
+
+/**
  * Analysis response from API
  */
 export interface AnalyzeResponse {
   analysis: AnalysisWithDetails
+  mlScoring?: MLScoringMetadata
 }
 
 /**

@@ -24,11 +24,14 @@ import {
   Twitter,
   Copy,
   Check,
+  Brain,
+  Zap,
+  BarChart3,
 } from "lucide-react";
 import { useState } from "react";
 import { useAnalysis, useDeleteAnalysis, useAnalyses } from "@/lib/hooks/use-analyses";
 import { formatRelativeDate, formatNumber } from "@/lib/utils/format";
-import type { AISuggestion } from "@/types/analysis";
+import type { AISuggestion, MLScoringMetadata } from "@/types/analysis";
 
 interface PageProps {
   params: Promise<{ id: string }>;
@@ -402,6 +405,11 @@ export default function AnalysisDetailPage({ params }: PageProps) {
           </div>
         </div>
 
+        {/* ML Insights Panel */}
+        {analysis.metadata?.ml_scoring && (
+          <MLInsightsPanel mlScoring={analysis.metadata.ml_scoring as MLScoringMetadata} />
+        )}
+
         {/* Actions */}
         <div className="glass-panel-strong p-6">
           <h3 className="text-white font-semibold mb-4">What&apos;s Next?</h3>
@@ -500,6 +508,131 @@ function BreakdownItem({
             background: `linear-gradient(90deg, ${getBarColor(value)}, ${getBarColor(value)}cc)`,
           }}
         />
+      </div>
+    </div>
+  );
+}
+
+function MLInsightsPanel({ mlScoring }: { mlScoring: MLScoringMetadata }) {
+  const hasMLScore = mlScoring.sources_available.ml && mlScoring.ml_score !== null;
+  const confidencePercent = mlScoring.ml_confidence ? Math.round(mlScoring.ml_confidence * 100) : 0;
+
+  return (
+    <div className="glass-panel p-5 mb-6">
+      <div className="flex items-center gap-2 mb-5">
+        <Brain className="w-5 h-5 text-[var(--accent-primary)]" />
+        <h3 className="text-[var(--text-secondary)] text-sm font-medium uppercase tracking-wider">
+          ML Scoring Insights
+        </h3>
+        {mlScoring.model_version && (
+          <span className="ml-auto text-xs text-[var(--text-muted)] bg-[var(--glass-bg)] px-2 py-1 rounded">
+            Model: {mlScoring.model_version}
+          </span>
+        )}
+      </div>
+
+      {/* Score Sources */}
+      <div className="grid grid-cols-3 gap-4 mb-5">
+        <div className={`p-3 rounded-xl ${hasMLScore ? 'bg-[var(--accent-primary)]/10 border border-[var(--accent-primary)]/30' : 'bg-[var(--glass-bg)] opacity-50'}`}>
+          <div className="flex items-center gap-2 mb-1">
+            <Brain className="w-4 h-4 text-[var(--accent-primary)]" />
+            <span className="text-xs text-[var(--text-muted)]">ML Model</span>
+          </div>
+          <span className={`text-2xl font-bold ${hasMLScore ? 'text-[var(--accent-primary)]' : 'text-[var(--text-muted)]'}`}>
+            {hasMLScore ? mlScoring.ml_score : '—'}
+          </span>
+          {hasMLScore && (
+            <span className="text-xs text-[var(--text-muted)] block">
+              {mlScoring.weights_used.ml * 100}% weight
+            </span>
+          )}
+        </div>
+
+        <div className={`p-3 rounded-xl ${mlScoring.sources_available.gemini ? 'bg-[var(--accent-secondary)]/10 border border-[var(--accent-secondary)]/30' : 'bg-[var(--glass-bg)] opacity-50'}`}>
+          <div className="flex items-center gap-2 mb-1">
+            <Sparkles className="w-4 h-4 text-[var(--accent-secondary)]" />
+            <span className="text-xs text-[var(--text-muted)]">Gemini AI</span>
+          </div>
+          <span className={`text-2xl font-bold ${mlScoring.sources_available.gemini ? 'text-[var(--accent-secondary)]' : 'text-[var(--text-muted)]'}`}>
+            {mlScoring.gemini_score ?? '—'}
+          </span>
+          {mlScoring.sources_available.gemini && (
+            <span className="text-xs text-[var(--text-muted)] block">
+              {mlScoring.weights_used.gemini * 100}% weight
+            </span>
+          )}
+        </div>
+
+        <div className="p-3 rounded-xl bg-[var(--glass-bg)] border border-[var(--glass-border)]">
+          <div className="flex items-center gap-2 mb-1">
+            <BarChart3 className="w-4 h-4 text-[var(--text-secondary)]" />
+            <span className="text-xs text-[var(--text-muted)]">Formula</span>
+          </div>
+          <span className="text-2xl font-bold text-[var(--text-secondary)]">
+            {mlScoring.formula_score}
+          </span>
+          <span className="text-xs text-[var(--text-muted)] block">
+            {mlScoring.weights_used.formula * 100}% weight
+          </span>
+        </div>
+      </div>
+
+      {/* Confidence & Top Features */}
+      {hasMLScore && (
+        <div className="grid grid-cols-2 gap-4">
+          {/* Confidence */}
+          <div className="p-3 rounded-xl bg-[var(--glass-bg)]">
+            <div className="flex items-center justify-between mb-2">
+              <span className="text-xs text-[var(--text-muted)]">ML Confidence</span>
+              <span className="text-sm font-semibold text-white">{confidencePercent}%</span>
+            </div>
+            <div className="h-2 bg-white/10 rounded-full overflow-hidden">
+              <div
+                className="h-full rounded-full transition-all duration-500"
+                style={{
+                  width: `${confidencePercent}%`,
+                  background: confidencePercent >= 80
+                    ? 'var(--color-success)'
+                    : confidencePercent >= 60
+                    ? 'var(--accent-primary)'
+                    : 'var(--color-warning)',
+                }}
+              />
+            </div>
+          </div>
+
+          {/* Top Features */}
+          {mlScoring.top_features && mlScoring.top_features.length > 0 && (
+            <div className="p-3 rounded-xl bg-[var(--glass-bg)]">
+              <span className="text-xs text-[var(--text-muted)] block mb-2">Top Factors</span>
+              <div className="flex flex-wrap gap-1">
+                {mlScoring.top_features.slice(0, 3).map((f, i) => (
+                  <span
+                    key={i}
+                    className="text-xs px-2 py-0.5 rounded bg-[var(--accent-primary)]/20 text-[var(--accent-primary)]"
+                  >
+                    {f.feature.replace(/_/g, ' ')}
+                  </span>
+                ))}
+              </div>
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* Scoring Method Badge */}
+      <div className="mt-4 pt-4 border-t border-white/10 flex items-center justify-between text-xs text-[var(--text-muted)]">
+        <span>Scoring method: <span className="text-[var(--text-secondary)] capitalize">{mlScoring.scoring_method}</span></span>
+        <div className="flex items-center gap-1">
+          <Zap className="w-3 h-3" />
+          <span>
+            {[
+              mlScoring.sources_available.ml && 'ML',
+              mlScoring.sources_available.gemini && 'Gemini',
+              'Formula'
+            ].filter(Boolean).join(' + ')}
+          </span>
+        </div>
       </div>
     </div>
   );
